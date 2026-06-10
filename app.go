@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 
 	"portkeeper/components/activitylog"
@@ -13,18 +12,9 @@ import (
 	"portkeeper/components/notifications"
 	"portkeeper/components/processmonitor"
 	"portkeeper/components/settings"
+	"portkeeper/internal/logger"
 	"portkeeper/kernel"
 )
-
-// stdLogger adapts the standard library logger to the kernel.Logger interface.
-type stdLogger struct {
-	l *log.Logger
-}
-
-func (sl *stdLogger) Info(msg string, args ...any)  { sl.l.Printf("[INFO] "+msg, args...) }
-func (sl *stdLogger) Warn(msg string, args ...any)  { sl.l.Printf("[WARN] "+msg, args...) }
-func (sl *stdLogger) Error(msg string, args ...any) { sl.l.Printf("[ERROR] "+msg, args...) }
-func (sl *stdLogger) Debug(msg string, args ...any) { sl.l.Printf("[DEBUG] "+msg, args...) }
 
 // App is the Wails application struct. It holds the ECC kernel and all six
 // monitoring components, exposing their public APIs as Wails bindings for the
@@ -52,8 +42,11 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
-	logger := &stdLogger{l: log.New(os.Stderr, "", log.LstdFlags)}
-	a.kernel = kernel.New(logger)
+	// Structured JSON logger — writes to stderr (captured by Wails in dev mode)
+	// and to ~/.config/portkeeper/portkeeper.log for production.
+	slogAdapter := logger.New("~/.config/portkeeper/portkeeper.log")
+	slogAdapter.Info("portkeeper starting", "version", kernel.Version)
+	a.kernel = kernel.New(slogAdapter)
 
 	// Instantiate components.
 	a.settingsComp = settings.New("")
@@ -73,7 +66,7 @@ func (a *App) startup(ctx context.Context) {
 
 	// Init and start all components.
 	if err := a.kernel.Start(); err != nil {
-		logger.Error("kernel start failed", "error", err)
+		slogAdapter.Error("kernel start failed", "error", err)
 	}
 }
 
@@ -83,7 +76,7 @@ func (a *App) shutdown(ctx context.Context) {
 		return
 	}
 	if err := a.kernel.Stop(); err != nil {
-		log.Printf("[ERROR] kernel stop failed: %v", err)
+		fmt.Fprintf(os.Stderr, "kernel stop failed: %v\n", err)
 	}
 }
 

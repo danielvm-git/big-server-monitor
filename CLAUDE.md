@@ -20,6 +20,22 @@ ECC pattern: Kernel (discovery, lifecycle, event bus) + 6 pluggable components.
 Components: processmonitor, healthcheck, activitylog, logcapture, notifications, settings.
 Components communicate via event bus ONLY — no direct imports between components.
 
+## Observability
+All logs are structured JSON via Go's log/slog with a JSON handler. Log entries include
+`time`, `level`, `msg`, and arbitrary key-value context fields.
+
+| What | Command |
+|------|---------|
+| View dev logs | `wails dev` (stderr captured in terminal) |
+| View prod logs | `tail -f ~/.config/portkeeper/portkeeper.log` |
+| View errors only | `grep '"level":"ERROR"' ~/.config/portkeeper/portkeeper.log` |
+| Run all tests | `go test ./... -count=1` |
+| Health check | `go test ./... -count=1` (pass = healthy) |
+| Check DB | `ls ~/.config/portkeeper/activity.db` (SQLite, created by activitylog) |
+| Setup (idempotent) | `bash scripts/setup.sh` |
+| Build & run | `wails dev` |
+| Production build | `wails build && open build/bin/portkeeper.app` |
+
 ## Never
 - Hardcode file paths or user home directories
 - Commit to main without PR
