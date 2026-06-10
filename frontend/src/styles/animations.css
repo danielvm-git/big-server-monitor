@@ -1,0 +1,11 @@
+.pk-slide-up {
+  animation: pk-slide-up 0.25s ease-out;
+}
+
+.pk-fade-in {
+  animation: pk-fade-in 0.2s ease-out;
+}
+
+.pk-fade-out {
+  animation: pk-fade-out 0.2s ease-out forwards;
+}
