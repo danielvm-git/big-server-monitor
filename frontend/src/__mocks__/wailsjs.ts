@@ -1,3 +1,5 @@
+import { vi } from 'vitest'
+
 export const GetServers = vi.fn().mockResolvedValue([])
 export const KillProcess = vi.fn().mockResolvedValue(undefined)
 export const GetHealthResults = vi.fn().mockResolvedValue([])

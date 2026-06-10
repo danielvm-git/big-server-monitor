@@ -1,8 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import KillConfirmDialog from './KillConfirmDialog'
+import type { processmonitor } from '../../wailsjs/go/models'
 
-const mockServer = { port: 3000, processName: 'node', pid: 12345 }
+const mockServer = { port: 3000, processName: 'node', pid: 12345 } as processmonitor.Server
 
 describe('KillConfirmDialog', () => {
   it('renders port and process name in confirmation message', () => {

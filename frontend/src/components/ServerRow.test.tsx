@@ -1,8 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import ServerRow from './ServerRow'
+import type { processmonitor } from '../../wailsjs/go/models'
 
-const mockServer = {
+const mockServer: processmonitor.Server = {
   port: 3000,
   status: 'online',
   pid: 12345,

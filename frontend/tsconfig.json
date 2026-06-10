@@ -23,6 +23,11 @@
   "include": [
     "src"
   ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/__mocks__"
+  ],
   "references": [
     {
       "path": "./tsconfig.node.json"

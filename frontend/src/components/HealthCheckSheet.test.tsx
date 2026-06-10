@@ -2,10 +2,12 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import HealthCheckSheet from './HealthCheckSheet'
 
+import type { healthcheck } from '../../wailsjs/go/models'
+
 const mockResults = [
   { port: 3000, status: 'ok', statusCode: 200, latencyMs: 42.5, protocol: 'http', checkedAt: new Date() },
   { port: 8080, status: 'error', statusCode: 500, latencyMs: 120, protocol: 'http', checkedAt: new Date() },
-]
+] as healthcheck.HealthResult[]
 
 describe('HealthCheckSheet', () => {
   it('renders health results with port numbers', () => {
