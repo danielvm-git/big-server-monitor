@@ -293,6 +293,222 @@ func TestGetLogs(t *testing.T) {
 	})
 }
 
+type mockLogger struct{}
+
+func (mockLogger) Info(msg string, args ...any)  {}
+func (mockLogger) Warn(msg string, args ...any)  {}
+func (mockLogger) Error(msg string, args ...any) {}
+func (mockLogger) Debug(msg string, args ...any) {}
+
+func newTestContext() *kernel.Context {
+	return &kernel.Context{
+		Kernel:     &kernel.Kernel{},
+		Logger:     mockLogger{},
+		Components: make(map[string]kernel.Component),
+		Config:     make(map[string]json.RawMessage),
+	}
+}
+
+func findHook(hooks []kernel.HookDef, name string) kernel.HookDef {
+	for _, h := range hooks {
+		if h.Name == name {
+			return h
+		}
+	}
+	return kernel.HookDef{}
+}
+
+func TestInit(t *testing.T) {
+	lc := New()
+	ctx := newTestContext()
+
+	err := lc.Init(ctx, nil)
+	if err != nil {
+		t.Fatalf("Init() returned error: %v", err)
+	}
+
+	if lc.logger == nil {
+		t.Error("expected logger to be set after Init")
+	}
+}
+
+func TestOnProcessStarted(t *testing.T) {
+	lc := New()
+	ctx := newTestContext()
+	if err := lc.Init(ctx, nil); err != nil {
+		t.Fatalf("Init failed: %v", err)
+	}
+
+	hook := findHook(lc.Hooks(), "process.started")
+	if hook.Handler == nil {
+		t.Fatal("process.started hook not found or has nil handler")
+	}
+
+	err := hook.Handler(ctx, kernel.Event{
+		Name: "process.started",
+		Data: map[string]any{
+			"port": 3000,
+			"pid":  12345,
+		},
+	})
+	if err != nil {
+		t.Fatalf("process.started handler returned error: %v", err)
+	}
+
+	// GetLogs should not panic; buffer should exist
+	logs := lc.GetLogs(LogFilter{Port: 3000})
+	if logs == nil {
+		t.Error("expected non-nil result from GetLogs")
+	}
+}
+
+func TestOnLogLine(t *testing.T) {
+	lc := New()
+	ctx := newTestContext()
+	if err := lc.Init(ctx, nil); err != nil {
+		t.Fatalf("Init failed: %v", err)
+	}
+
+	// Emit process.started first
+	startedHook := findHook(lc.Hooks(), "process.started")
+	if err := startedHook.Handler(ctx, kernel.Event{
+		Name: "process.started",
+		Data: map[string]any{
+			"port": 3000,
+			"pid":  12345,
+		},
+	}); err != nil {
+		t.Fatalf("process.started handler returned error: %v", err)
+	}
+
+	// Emit log.line
+	logHook := findHook(lc.Hooks(), "log.line")
+	if err := logHook.Handler(ctx, kernel.Event{
+		Name: "log.line",
+		Data: map[string]any{
+			"port": 3000,
+			"text": "Error: connection refused",
+		},
+	}); err != nil {
+		t.Fatalf("log.line handler returned error: %v", err)
+	}
+
+	logs := lc.GetLogs(LogFilter{Port: 3000})
+	if len(logs) != 1 {
+		t.Fatalf("expected 1 log line, got %d", len(logs))
+	}
+	if logs[0].Level != LogError {
+		t.Errorf("expected level=error, got %s", logs[0].Level)
+	}
+	if logs[0].Text != "Error: connection refused" {
+		t.Errorf("expected text='Error: connection refused', got %q", logs[0].Text)
+	}
+}
+
+func TestOnLogLineCaptureMultipleLevels(t *testing.T) {
+	lc := New()
+	ctx := newTestContext()
+	if err := lc.Init(ctx, nil); err != nil {
+		t.Fatalf("Init failed: %v", err)
+	}
+
+	// Start process
+	startedHook := findHook(lc.Hooks(), "process.started")
+	if err := startedHook.Handler(ctx, kernel.Event{
+		Name: "process.started",
+		Data: map[string]any{"port": 3000, "pid": 12345},
+	}); err != nil {
+		t.Fatalf("process.started handler returned error: %v", err)
+	}
+
+	logHook := findHook(lc.Hooks(), "log.line")
+
+	// Emit info
+	logHook.Handler(ctx, kernel.Event{
+		Name: "log.line",
+		Data: map[string]any{"port": 3000, "text": "Server listening"},
+	})
+	// Emit warn
+	logHook.Handler(ctx, kernel.Event{
+		Name: "log.line",
+		Data: map[string]any{"port": 3000, "text": "WARNING: deprecated API"},
+	})
+	// Emit error
+	logHook.Handler(ctx, kernel.Event{
+		Name: "log.line",
+		Data: map[string]any{"port": 3000, "text": "Error: something broke"},
+	})
+
+	counts := lc.GetLogCounts(3000)
+	if counts[LogInfo] != 1 {
+		t.Errorf("expected 1 info, got %d", counts[LogInfo])
+	}
+	if counts[LogWarn] != 1 {
+		t.Errorf("expected 1 warn, got %d", counts[LogWarn])
+	}
+	if counts[LogError] != 1 {
+		t.Errorf("expected 1 error, got %d", counts[LogError])
+	}
+}
+
+func TestProcessStoppedClearsBuffer(t *testing.T) {
+	lc := New()
+	ctx := newTestContext()
+	if err := lc.Init(ctx, nil); err != nil {
+		t.Fatalf("Init failed: %v", err)
+	}
+
+	// Start process and add log lines
+	startedHook := findHook(lc.Hooks(), "process.started")
+	startedHook.Handler(ctx, kernel.Event{
+		Name: "process.started",
+		Data: map[string]any{"port": 3000, "pid": 12345},
+	})
+
+	logHook := findHook(lc.Hooks(), "log.line")
+	logHook.Handler(ctx, kernel.Event{
+		Name: "log.line",
+		Data: map[string]any{"port": 3000, "text": "some log line"},
+	})
+
+	// Verify line exists
+	if len(lc.GetLogs(LogFilter{Port: 3000})) != 1 {
+		t.Fatal("expected 1 log line before stop")
+	}
+
+	// Emit process.stopped
+	stoppedHook := findHook(lc.Hooks(), "process.stopped")
+	if err := stoppedHook.Handler(ctx, kernel.Event{
+		Name: "process.stopped",
+		Data: map[string]any{"port": 3000},
+	}); err != nil {
+		t.Fatalf("process.stopped handler returned error: %v", err)
+	}
+
+	// Assert buffer is cleared
+	logs := lc.GetLogs(LogFilter{Port: 3000})
+	if len(logs) != 0 {
+		t.Errorf("expected empty buffer after stop, got %d lines", len(logs))
+	}
+}
+
+func TestStartStopLifecycle(t *testing.T) {
+	lc := New()
+	ctx := newTestContext()
+
+	if err := lc.Init(ctx, nil); err != nil {
+		t.Fatalf("Init returned error: %v", err)
+	}
+
+	if err := lc.Start(ctx); err != nil {
+		t.Fatalf("Start returned error: %v", err)
+	}
+
+	if err := lc.Stop(ctx); err != nil {
+		t.Fatalf("Stop returned error: %v", err)
+	}
+}
+
 func TestGetLogCounts(t *testing.T) {
 	t.Run("counts by level", func(t *testing.T) {
 		lc := &LogCapture{

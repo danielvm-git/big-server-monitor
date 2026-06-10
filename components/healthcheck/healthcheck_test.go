@@ -2,6 +2,7 @@ package healthcheck
 
 import (
 	"encoding/json"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -358,4 +359,235 @@ func extractPort(t *testing.T, url string) int {
 		port = port*10 + int(c-'0')
 	}
 	return port
+}
+
+func TestProbePostgres(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("failed to listen: %v", err)
+	}
+	defer ln.Close()
+
+	port := ln.Addr().(*net.TCPAddr).Port
+
+	go func() {
+		conn, err := ln.Accept()
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+		conn.Write([]byte{0, 0, 0, 0, 0})
+	}()
+
+	hc := &HealthCheck{
+		results: make(map[int]HealthResult),
+		config: Config{
+			ProbeTimeout: 5 * time.Second,
+		},
+	}
+
+	result := hc.probePostgres(port, 5*time.Second)
+
+	if result.Status != HealthOK {
+		t.Fatalf("expected HealthOK, got %s", result.Status)
+	}
+	if result.Protocol != "postgres" {
+		t.Fatalf("expected protocol 'postgres', got %s", result.Protocol)
+	}
+	if result.LatencyMs <= 0 {
+		t.Fatalf("expected latency > 0, got %v", result.LatencyMs)
+	}
+}
+
+func TestProbeRedis(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("failed to listen: %v", err)
+	}
+	defer ln.Close()
+
+	port := ln.Addr().(*net.TCPAddr).Port
+
+	go func() {
+		conn, err := ln.Accept()
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+		buf := make([]byte, 6)
+		conn.Read(buf)
+		conn.Write([]byte("+PONG\r\n"))
+	}()
+
+	hc := &HealthCheck{
+		results: make(map[int]HealthResult),
+		config: Config{
+			ProbeTimeout: 5 * time.Second,
+		},
+	}
+
+	result := hc.probeRedis(port, 5*time.Second)
+
+	if result.Status != HealthOK {
+		t.Fatalf("expected HealthOK, got %s", result.Status)
+	}
+	if result.Protocol != "redis" {
+		t.Fatalf("expected protocol 'redis', got %s", result.Protocol)
+	}
+}
+
+func TestProbeMySQL(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("failed to listen: %v", err)
+	}
+	defer ln.Close()
+
+	port := ln.Addr().(*net.TCPAddr).Port
+
+	go func() {
+		conn, err := ln.Accept()
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+		conn.Write([]byte{0x0a})
+	}()
+
+	hc := &HealthCheck{
+		results: make(map[int]HealthResult),
+		config: Config{
+			ProbeTimeout: 5 * time.Second,
+		},
+	}
+
+	result := hc.probeMySQL(port, 5*time.Second)
+
+	if result.Status != HealthOK {
+		t.Fatalf("expected HealthOK, got %s", result.Status)
+	}
+	if result.Protocol != "mysql" {
+		t.Fatalf("expected protocol 'mysql', got %s", result.Protocol)
+	}
+}
+
+func TestProbeMongoDB(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("failed to listen: %v", err)
+	}
+	defer ln.Close()
+
+	port := ln.Addr().(*net.TCPAddr).Port
+
+	go func() {
+		conn, err := ln.Accept()
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+		conn.Write([]byte{0x01})
+	}()
+
+	hc := &HealthCheck{
+		results: make(map[int]HealthResult),
+		config: Config{
+			ProbeTimeout: 5 * time.Second,
+		},
+	}
+
+	result := hc.probeMongoDB(port, 5*time.Second)
+
+	if result.Status != HealthOK {
+		t.Fatalf("expected HealthOK, got %s", result.Status)
+	}
+	if result.Protocol != "mongodb" {
+		t.Fatalf("expected protocol 'mongodb', got %s", result.Protocol)
+	}
+}
+
+func TestProbeMemcached(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("failed to listen: %v", err)
+	}
+	defer ln.Close()
+
+	port := ln.Addr().(*net.TCPAddr).Port
+
+	go func() {
+		conn, err := ln.Accept()
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+		buf := make([]byte, 10)
+		conn.Read(buf)
+		conn.Write([]byte("VERSION 1.4.0\r\n"))
+	}()
+
+	hc := &HealthCheck{
+		results: make(map[int]HealthResult),
+		config: Config{
+			ProbeTimeout: 5 * time.Second,
+		},
+	}
+
+	result := hc.probeMemcached(port, 5*time.Second)
+
+	if result.Status != HealthOK {
+		t.Fatalf("expected HealthOK, got %s", result.Status)
+	}
+	if result.Protocol != "memcached" {
+		t.Fatalf("expected protocol 'memcached', got %s", result.Protocol)
+	}
+}
+
+func TestProbeTimeout(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("failed to listen: %v", err)
+	}
+	defer ln.Close()
+
+	port := ln.Addr().(*net.TCPAddr).Port
+
+	go func() {
+		conn, err := ln.Accept()
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+		time.Sleep(time.Second)
+	}()
+
+	hc := &HealthCheck{
+		results: make(map[int]HealthResult),
+		config: Config{
+			ProbeTimeout: 5 * time.Second,
+		},
+	}
+
+	result := hc.probePostgres(port, 100*time.Millisecond)
+
+	if result.Status != HealthTimeout {
+		t.Fatalf("expected HealthTimeout, got %s", result.Status)
+	}
+}
+
+func TestProbeRefused(t *testing.T) {
+	port := 54321
+
+	hc := &HealthCheck{
+		results: make(map[int]HealthResult),
+		config: Config{
+			ProbeTimeout: 5 * time.Second,
+		},
+	}
+
+	result := hc.probePostgres(port, 1*time.Second)
+
+	if result.Status != HealthTimeout {
+		t.Fatalf("expected HealthTimeout, got %s", result.Status)
+	}
 }

@@ -22,6 +22,8 @@ export function GetLogs(arg1:logcapture.LogFilter):Promise<Array<logcapture.LogL
 
 export function GetLogsForAI(arg1:number):Promise<string>;
 
+export function GetMonitorStatus():Promise<processmonitor.MonitorStatus>;
+
 export function GetServerByPort(arg1:number):Promise<processmonitor.Server>;
 
 export function GetServers():Promise<Array<processmonitor.Server>>;

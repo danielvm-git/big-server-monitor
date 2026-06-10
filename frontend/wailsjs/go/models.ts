@@ -221,6 +221,24 @@ export namespace processmonitor {
 	        this.visible = source["visible"];
 	    }
 	}
+	export class MonitorStatus {
+	    healthy: boolean;
+	    lastError?: string;
+	    lastPollAt?: string;
+	    serverCount: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new MonitorStatus(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.healthy = source["healthy"];
+	        this.lastError = source["lastError"];
+	        this.lastPollAt = source["lastPollAt"];
+	        this.serverCount = source["serverCount"];
+	    }
+	}
 	export class Server {
 	    port: number;
 	    status: string;

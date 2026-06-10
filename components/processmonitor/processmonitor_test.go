@@ -2,8 +2,11 @@ package processmonitor
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -19,6 +22,27 @@ func (m *mockLogger) Info(msg string, args ...any)  { m.messages = append(m.mess
 func (m *mockLogger) Warn(msg string, args ...any)  { m.messages = append(m.messages, msg) }
 func (m *mockLogger) Error(msg string, args ...any) { m.messages = append(m.messages, msg) }
 func (m *mockLogger) Debug(msg string, args ...any) { m.messages = append(m.messages, msg) }
+
+// mockDiscovery implements PortDiscovery for testing.
+type mockDiscovery struct {
+	ports []int
+	info  processInfo
+	err   error
+}
+
+func (m *mockDiscovery) ListeningPorts() ([]int, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.ports, nil
+}
+
+func (m *mockDiscovery) ProcessInfo(port int) (processInfo, error) {
+	if m.err != nil {
+		return processInfo{}, m.err
+	}
+	return m.info, nil
+}
 
 // TestComponentInterface verifies ProcessMonitor implements the Component interface
 func TestComponentInterface(t *testing.T) {
@@ -237,4 +261,355 @@ func TestEnvVarRedaction(t *testing.T) {
 // Helper function
 func startsWith(s, prefix string) bool {
 	return len(s) >= len(prefix) && s[:len(prefix)] == prefix
+}
+
+func mockContext() *kernel.Context {
+	return &kernel.Context{
+		Kernel: kernel.New(&mockLogger{}),
+		Logger: &mockLogger{},
+	}
+}
+
+func TestPollDiscoversNewPorts(t *testing.T) {
+	md := &mockDiscovery{
+		ports: []int{3000, 8080},
+		info: processInfo{
+			PID:         1234,
+			ProcessName: "node",
+			BinaryPath:  "/usr/local/bin/node",
+			WorkingDir:  "/app",
+			MemoryMB:    50.0,
+			StartTime:   time.Now(),
+		},
+	}
+
+	pm := &ProcessMonitor{
+		mu:              &lockInfo{},
+		servers:         make(map[int]*Server),
+		previousServers: make(map[int]*Server),
+		runtimeCache:    make(map[int]string),
+		discovery:       md,
+		config: Config{
+			PollingIntervalSec: 5,
+		},
+	}
+
+	ctx := mockContext()
+	pm.poll(ctx)
+
+	servers := pm.GetServers()
+	if len(servers) != 2 {
+		t.Errorf("expected 2 servers, got %d", len(servers))
+	}
+}
+
+func TestPollIgnoresPorts(t *testing.T) {
+	md := &mockDiscovery{
+		ports: []int{443, 3000},
+		info: processInfo{
+			PID:         1234,
+			ProcessName: "test",
+			StartTime:   time.Now(),
+		},
+	}
+
+	pm := &ProcessMonitor{
+		mu:              &lockInfo{},
+		servers:         make(map[int]*Server),
+		previousServers: make(map[int]*Server),
+		runtimeCache:    make(map[int]string),
+		discovery:       md,
+		config: Config{
+			PollingIntervalSec: 5,
+			IgnoredPorts:       []int{443},
+		},
+	}
+
+	ctx := mockContext()
+	pm.poll(ctx)
+
+	servers := pm.GetServers()
+	if len(servers) != 1 {
+		t.Errorf("expected 1 server (443 ignored), got %d", len(servers))
+	}
+	if len(servers) > 0 && servers[0].Port != 3000 {
+		t.Errorf("expected port 3000, got %d", servers[0].Port)
+	}
+}
+
+func TestPollHandlesDiscoveryError(t *testing.T) {
+	md := &mockDiscovery{
+		err: fmt.Errorf("lsof unavailable"),
+	}
+
+	prevServer := &Server{Port: 8080, Status: StatusOnline, ProcessName: "node"}
+	pm := &ProcessMonitor{
+		mu:              &lockInfo{},
+		servers:         map[int]*Server{8080: prevServer},
+		previousServers: map[int]*Server{8080: prevServer},
+		runtimeCache:    make(map[int]string),
+		discovery:       md,
+		config: Config{
+			PollingIntervalSec: 5,
+		},
+	}
+
+	ctx := mockContext()
+	pm.poll(ctx)
+
+	// servers should be unchanged
+	servers := pm.GetServers()
+	if len(servers) != 1 {
+		t.Errorf("expected 1 server preserved from error, got %d", len(servers))
+	}
+}
+
+func TestPollPreservesServersOnEmptyResult(t *testing.T) {
+	md := &mockDiscovery{
+		ports: []int{},
+	}
+
+	prevServer := &Server{Port: 3000, Status: StatusOnline, ProcessName: "python"}
+	pm := &ProcessMonitor{
+		mu:              &lockInfo{},
+		servers:         map[int]*Server{3000: prevServer},
+		previousServers: map[int]*Server{3000: prevServer},
+		runtimeCache:    make(map[int]string),
+		discovery:       md,
+		config: Config{
+			PollingIntervalSec: 5,
+		},
+	}
+
+	ctx := mockContext()
+	pm.poll(ctx)
+
+	servers := pm.GetServers()
+	if len(servers) != 1 {
+		t.Errorf("expected 1 server preserved from empty result, got %d", len(servers))
+	}
+}
+
+func TestDiffAndEmitProcessStarted(t *testing.T) {
+	k := kernel.New(&mockLogger{})
+	receivedEvents := make([]kernel.Event, 0)
+	var mu sync.Mutex
+
+	k.EventBus().Subscribe(kernel.HookDef{
+		Name:     "process.started",
+		Priority: 0,
+		Handler: func(ctx *kernel.Context, event kernel.Event) error {
+			mu.Lock()
+			receivedEvents = append(receivedEvents, event)
+			mu.Unlock()
+			return nil
+		},
+	})
+
+	ctx := &kernel.Context{
+		Kernel: k,
+		Logger: &mockLogger{},
+	}
+
+	md := &mockDiscovery{
+		ports: []int{3000},
+		info: processInfo{
+			PID:         9999,
+			ProcessName: "test-server",
+			StartTime:   time.Now(),
+		},
+	}
+
+	pm := &ProcessMonitor{
+		mu:              &lockInfo{},
+		servers:         make(map[int]*Server),
+		previousServers: make(map[int]*Server),
+		runtimeCache:    make(map[int]string),
+		discovery:       md,
+		config: Config{
+			PollingIntervalSec: 5,
+		},
+	}
+
+	pm.poll(ctx)
+
+	mu.Lock()
+	count := len(receivedEvents)
+	mu.Unlock()
+	if count != 1 {
+		t.Errorf("expected 1 process.started event, got %d", count)
+	}
+}
+
+func TestDiffAndEmitProcessStopped(t *testing.T) {
+	k := kernel.New(&mockLogger{})
+	receivedEvents := make([]kernel.Event, 0)
+	var mu sync.Mutex
+
+	k.EventBus().Subscribe(kernel.HookDef{
+		Name:     "process.stopped",
+		Priority: 0,
+		Handler: func(ctx *kernel.Context, event kernel.Event) error {
+			mu.Lock()
+			receivedEvents = append(receivedEvents, event)
+			mu.Unlock()
+			return nil
+		},
+	})
+
+	ctx := &kernel.Context{
+		Kernel: k,
+		Logger: &mockLogger{},
+	}
+
+	md := &mockDiscovery{
+		ports: []int{}, // no ports discovered
+	}
+
+	prevServer := &Server{Port: 8080, Status: StatusOnline, ProcessName: "old-node", StartedAt: time.Now().Add(-1 * time.Hour)}
+	pm := &ProcessMonitor{
+		mu:              &lockInfo{},
+		servers:         map[int]*Server{8080: prevServer},
+		previousServers: map[int]*Server{8080: prevServer},
+		runtimeCache:    make(map[int]string),
+		discovery:       md,
+		config: Config{
+			PollingIntervalSec: 5,
+		},
+	}
+
+	pm.poll(ctx)
+
+	mu.Lock()
+	count := len(receivedEvents)
+	mu.Unlock()
+	if count != 1 {
+		t.Errorf("expected 1 process.stopped event, got %d", count)
+	}
+}
+
+func TestKillProcessSuccess(t *testing.T) {
+	// Start a sleep process we can kill
+	cmd := exec.Command("sleep", "30")
+	if err := cmd.Start(); err != nil {
+		t.Skipf("could not start sleep: %v", err)
+	}
+	pid := cmd.Process.Pid
+	defer func() { _ = cmd.Process.Kill() }()
+
+	pm := &ProcessMonitor{}
+	err := pm.KillProcess(pid)
+	if err != nil {
+		t.Errorf("expected no error killing PID %d, got %v", pid, err)
+	}
+}
+
+func TestKillProcessNonexistent(t *testing.T) {
+	pm := &ProcessMonitor{}
+	err := pm.KillProcess(99999)
+	if err == nil {
+		t.Error("expected error for nonexistent PID")
+	}
+}
+
+func TestGetServerByPort(t *testing.T) {
+	pm := &ProcessMonitor{
+		mu:      &lockInfo{},
+		servers: make(map[int]*Server),
+	}
+
+	srv := &Server{Port: 3000, Status: StatusOnline, ProcessName: "node"}
+	pm.servers[3000] = srv
+
+	t.Run("found", func(t *testing.T) {
+		got, err := pm.GetServerByPort(3000)
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if got.Port != 3000 {
+			t.Errorf("expected port 3000, got %d", got.Port)
+		}
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		_, err := pm.GetServerByPort(9999)
+		if err == nil {
+			t.Error("expected error for unmatched port")
+		}
+	})
+}
+
+func TestGetServersDeepCopy(t *testing.T) {
+	pm := &ProcessMonitor{
+		mu:      &lockInfo{},
+		servers: make(map[int]*Server),
+	}
+	pm.servers[8080] = &Server{Port: 8080, Status: StatusOnline, ProcessName: "node"}
+
+	servers := pm.GetServers()
+	if len(servers) != 1 {
+		t.Fatalf("expected 1 server, got %d", len(servers))
+	}
+
+	// Mutate the returned slice
+	servers[0].Port = 9999
+
+	// Internal state should be unchanged
+	internal, err := pm.GetServerByPort(8080)
+	if err != nil {
+		t.Fatalf("internal server should still exist: %v", err)
+	}
+	if internal.Port != 8080 {
+		t.Errorf("expected internal port 8080, got %d — deep copy was not made", internal.Port)
+	}
+}
+
+func TestGetMonitorStatus(t *testing.T) {
+	pm := New()
+
+	// Before any poll, status should be default (healthy=false)
+	status := pm.GetMonitorStatus()
+	if status.Healthy {
+		t.Error("expected Healthy=false before first poll")
+	}
+
+	// After successful poll, should be healthy
+	mock := &mockDiscovery{
+		ports: []int{3000},
+		info: processInfo{PID: 12345, ProcessName: "node"},
+	}
+	pm.discovery = mock
+	ctx := mockContext()
+	pm.Init(ctx, nil)
+	pm.poll(ctx)
+
+	status = pm.GetMonitorStatus()
+	if !status.Healthy {
+		t.Error("expected Healthy=true after successful poll")
+	}
+	if status.ServerCount != 1 {
+		t.Errorf("expected ServerCount=1, got %d", status.ServerCount)
+	}
+	if status.LastPollAt == "" {
+		t.Error("expected LastPollAt to be set")
+	}
+}
+
+func TestGetMonitorStatusWithError(t *testing.T) {
+	pm := New()
+	ctx := mockContext()
+	pm.Init(ctx, nil)
+
+	// Poll with error
+	mock := &mockDiscovery{err: fmt.Errorf("lsof not available")}
+	pm.discovery = mock
+	pm.poll(ctx)
+
+	status := pm.GetMonitorStatus()
+	if status.Healthy {
+		t.Error("expected Healthy=false after error")
+	}
+	if status.LastError == "" {
+		t.Error("expected LastError to be set")
+	}
 }

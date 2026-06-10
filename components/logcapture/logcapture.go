@@ -197,18 +197,20 @@ func (lc *LogCapture) onProcessStarted(ctx *kernel.Context, event kernel.Event) 
 	return nil
 }
 
-// onProcessStopped handles process.stopped events to flush logs.
+// onProcessStopped handles process.stopped events to clear log buffers.
 func (lc *LogCapture) onProcessStopped(ctx *kernel.Context, event kernel.Event) error {
 	port, ok := event.Data["port"].(int)
 	if !ok {
 		return fmt.Errorf("process.stopped: invalid or missing port")
 	}
 
-	lc.mu.RLock()
-	defer lc.mu.RUnlock()
+	lc.mu.Lock()
+	defer lc.mu.Unlock()
 
-	lc.logger.Info("logcapture: process stopped", "port", port)
-	// Logs remain in buffer for retrieval after stop
+	delete(lc.buffers, port)
+	delete(lc.pidInfo, port)
+
+	lc.logger.Info("logcapture: process stopped, buffer cleared", "port", port)
 	return nil
 }
 

@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import Popover from './components/Popover';
 import PopoverHeader from './components/PopoverHeader';
+import StatusBanner from './components/StatusBanner';
 import ServerList from './components/ServerList';
 import HealthCheckSheet from './components/HealthCheckSheet';
 import ActivityLogSheet from './components/ActivityLogSheet';
@@ -82,6 +83,7 @@ function App() {
       <ToastProvider>
         <Popover>
           <PopoverHeader serverCount={servers.length} onRefresh={refreshServers} />
+          <StatusBanner />
 
           {serversLoading && servers.length === 0 ? (
             <div className="pk-loading">Discovering servers...</div>

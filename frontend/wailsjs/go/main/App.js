@@ -34,6 +34,10 @@ export function GetLogsForAI(arg1) {
   return window['go']['main']['App']['GetLogsForAI'](arg1);
 }
 
+export function GetMonitorStatus() {
+  return window['go']['main']['App']['GetMonitorStatus']();
+}
+
 export function GetServerByPort(arg1) {
   return window['go']['main']['App']['GetServerByPort'](arg1);
 }

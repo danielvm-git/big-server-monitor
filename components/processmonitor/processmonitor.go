@@ -11,7 +11,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -29,6 +28,14 @@ const (
 	StatusOffline Status = "offline"
 	StatusUnknown Status = "unknown"
 )
+
+// MonitorStatus summarizes the health of the process monitor.
+type MonitorStatus struct {
+	Healthy     bool   `json:"healthy"`
+	LastError   string `json:"lastError,omitempty"`
+	LastPollAt  string `json:"lastPollAt,omitempty"`
+	ServerCount int    `json:"serverCount"`
+}
 
 // Server represents a monitored process listening on a port
 type Server struct {
@@ -93,6 +100,7 @@ func New() *ProcessMonitor {
 		servers:         make(map[int]*Server),
 		previousServers: make(map[int]*Server),
 		runtimeCache:    make(map[int]string),
+		discovery:       &LsofPortDiscovery{},
 		config: Config{
 			PollingIntervalSec: 5,
 		},
@@ -106,8 +114,10 @@ type ProcessMonitor struct {
 	servers         map[int]*Server // port -> Server
 	previousServers map[int]*Server // for diff detection
 	runtimeCache    map[int]string   // pid -> runtime version
+	status          MonitorStatus
 	ctx             *kernel.Context
 	ticker          *time.Ticker
+	discovery       PortDiscovery
 }
 
 // Name returns the component name
@@ -143,6 +153,9 @@ func (pm *ProcessMonitor) Init(ctx *kernel.Context, config json.RawMessage) erro
 	pm.servers = make(map[int]*Server)
 	pm.previousServers = make(map[int]*Server)
 	pm.runtimeCache = make(map[int]string)
+	if pm.discovery == nil {
+		pm.discovery = &LsofPortDiscovery{}
+	}
 
 	// Set defaults
 	pm.config = Config{
@@ -233,6 +246,13 @@ func (pm *ProcessMonitor) GetServerByPort(port int) (Server, error) {
 	return *s, nil
 }
 
+// GetMonitorStatus returns the current health status of the process monitor.
+func (pm *ProcessMonitor) GetMonitorStatus() MonitorStatus {
+	pm.mu.RLock()
+	defer pm.mu.RUnlock()
+	return pm.status
+}
+
 // KillProcess terminates a process by PID
 func (pm *ProcessMonitor) KillProcess(pid int) error {
 	process, err := os.FindProcess(pid)
@@ -244,13 +264,18 @@ func (pm *ProcessMonitor) KillProcess(pid int) error {
 
 // poll checks current listening ports and emits events
 func (pm *ProcessMonitor) poll(ctx *kernel.Context) {
-	ports, err := pm.listeningPorts()
+	ports, err := pm.discovery.ListeningPorts()
 	if err != nil {
 		ctx.Logger.Error("list ports", "error", err)
+		pm.mu.Lock()
+		pm.status.Healthy = false
+		pm.status.LastError = err.Error()
+		pm.mu.Unlock()
 		return
 	}
 
 	currentServers := make(map[int]*Server)
+	var partialErrors []string
 
 	for _, port := range ports {
 		// Skip ignored ports
@@ -259,9 +284,10 @@ func (pm *ProcessMonitor) poll(ctx *kernel.Context) {
 		}
 
 		// Get process info
-		info, err := pm.getProcessInfo(port)
+		info, err := pm.discovery.ProcessInfo(port)
 		if err != nil {
 			ctx.Logger.Debug("get process info", "port", port, "error", err)
+			partialErrors = append(partialErrors, fmt.Sprintf("port %d: %s", port, err.Error()))
 			continue
 		}
 
@@ -300,7 +326,20 @@ func (pm *ProcessMonitor) poll(ctx *kernel.Context) {
 	pm.diffAndEmit(ctx, currentServers)
 
 	pm.mu.Lock()
-	pm.servers = currentServers
+	// Only update if we discovered servers or if this is the first poll.
+	// Prevents a transient failure from wiping previously discovered servers.
+	if len(currentServers) > 0 || len(pm.servers) == 0 {
+		pm.servers = currentServers
+	}
+
+	pm.status.Healthy = true
+	pm.status.LastPollAt = time.Now().Format(time.RFC3339)
+	pm.status.ServerCount = len(pm.servers)
+	if len(partialErrors) > 0 {
+		pm.status.LastError = strings.Join(partialErrors, "; ")
+	} else {
+		pm.status.LastError = ""
+	}
 	pm.mu.Unlock()
 }
 
@@ -368,211 +407,6 @@ type processInfo struct {
 	WorkingDir string
 	MemoryMB   float64
 	StartTime  time.Time
-}
-
-// listeningPorts returns list of TCP ports currently listening
-func (pm *ProcessMonitor) listeningPorts() ([]int, error) {
-	// Try syscall on macOS
-	ports, err := pm.listeningPortsViaPS()
-	if err != nil {
-		return nil, fmt.Errorf("list ports: %w", err)
-	}
-	return ports, nil
-}
-
-// listeningPortsViaPS uses ps command as fallback
-func (pm *ProcessMonitor) listeningPortsViaPS() ([]int, error) {
-	// Use lsof to list listening ports
-	cmd := exec.Command("lsof", "-iTCP", "-sTCP:LISTEN", "-n", "-P")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return nil, fmt.Errorf("lsof: %w", err)
-	}
-
-	ports := make(map[int]bool)
-	scanner := bufio.NewScanner(bytes.NewReader(output))
-	for scanner.Scan() {
-		line := scanner.Text()
-		// Parse lsof output: COMMAND PID USER FD TYPE DEVICE SIZE/OFF NODE NAME
-		// Last column contains address like *:8080 or 127.0.0.1:3000
-		fields := strings.Fields(line)
-		if len(fields) < 9 {
-			continue
-		}
-		addr := fields[len(fields)-1]
-		port := pm.extractPort(addr)
-		if port > 0 {
-			ports[port] = true
-		}
-	}
-
-	result := make([]int, 0, len(ports))
-	for port := range ports {
-		result = append(result, port)
-	}
-	return result, nil
-}
-
-// extractPort parses port from address like *:8080 or 127.0.0.1:3000
-func (pm *ProcessMonitor) extractPort(addr string) int {
-	parts := strings.Split(addr, ":")
-	if len(parts) < 2 {
-		return 0
-	}
-	port, err := strconv.Atoi(parts[len(parts)-1])
-	if err != nil {
-		return 0
-	}
-	return port
-}
-
-// getProcessInfo retrieves metadata for process listening on port
-func (pm *ProcessMonitor) getProcessInfo(port int) (processInfo, error) {
-	// Use lsof to get PID for port
-	cmd := exec.Command("lsof", "-iTCP:"+strconv.Itoa(port), "-sTCP:LISTEN", "-n", "-P")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return processInfo{}, fmt.Errorf("lsof port %d: %w", port, err)
-	}
-
-	var pid int
-	scanner := bufio.NewScanner(bytes.NewReader(output))
-	for scanner.Scan() {
-		line := scanner.Text()
-		fields := strings.Fields(line)
-		if len(fields) < 2 {
-			continue
-		}
-		pidStr := fields[1]
-		if p, err := strconv.Atoi(pidStr); err == nil && p > 0 {
-			pid = p
-			break
-		}
-	}
-
-	if pid == 0 {
-		return processInfo{}, fmt.Errorf("no PID found for port %d", port)
-	}
-
-	// Get process details
-	return pm.getProcessDetails(pid)
-}
-
-// getProcessDetails retrieves details for a PID
-func (pm *ProcessMonitor) getProcessDetails(pid int) (processInfo, error) {
-	// Read from /proc or use ps command
-	cmd := exec.Command("ps", "-p", strconv.Itoa(pid), "-o", "comm=,etime=")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return processInfo{}, fmt.Errorf("ps: %w", err)
-	}
-
-	line := strings.TrimSpace(string(output))
-	fields := strings.Fields(line)
-	if len(fields) < 1 {
-		return processInfo{}, fmt.Errorf("no process data for PID %d", pid)
-	}
-
-	processName := fields[0]
-	binaryPath := pm.getBinaryPath(pid)
-	workingDir := pm.getWorkingDir(pid)
-	memoryMB := pm.getMemoryMB(pid)
-	startTime := pm.parseStartTime(pid)
-
-	return processInfo{
-		PID:        pid,
-		ProcessName: processName,
-		BinaryPath: binaryPath,
-		WorkingDir: workingDir,
-		MemoryMB:   memoryMB,
-		StartTime:  startTime,
-	}, nil
-}
-
-// getBinaryPath gets the binary path for a PID
-func (pm *ProcessMonitor) getBinaryPath(pid int) string {
-	// Try via /proc first
-	exePath := filepath.Join("/proc", strconv.Itoa(pid), "exe")
-	if realPath, err := os.Readlink(exePath); err == nil {
-		return realPath
-	}
-
-	// Fallback: try lsof
-	cmd := exec.Command("lsof", "-p", strconv.Itoa(pid), "-a", "-d", "cwd")
-	output, _ := cmd.CombinedOutput()
-	if len(output) > 0 {
-		return strings.TrimSpace(string(output))
-	}
-
-	return ""
-}
-
-// getWorkingDir gets the working directory for a PID
-func (pm *ProcessMonitor) getWorkingDir(pid int) string {
-	// Try via /proc first
-	cwdPath := filepath.Join("/proc", strconv.Itoa(pid), "cwd")
-	if realPath, err := os.Readlink(cwdPath); err == nil {
-		return realPath
-	}
-
-	// Fallback: use pwd via lsof
-	cmd := exec.Command("lsof", "-p", strconv.Itoa(pid), "-a", "-d", "cwd")
-	output, _ := cmd.CombinedOutput()
-	lines := strings.Split(string(output), "\n")
-	if len(lines) > 1 {
-		fields := strings.Fields(lines[1])
-		if len(fields) > 0 {
-			return fields[len(fields)-1]
-		}
-	}
-
-	return ""
-}
-
-// getMemoryMB gets memory usage in MB for a PID
-func (pm *ProcessMonitor) getMemoryMB(pid int) float64 {
-	// Try /proc/[pid]/status
-	statusPath := filepath.Join("/proc", strconv.Itoa(pid), "status")
-	data, err := os.ReadFile(statusPath)
-	if err == nil {
-		scanner := bufio.NewScanner(bytes.NewReader(data))
-		for scanner.Scan() {
-			line := scanner.Text()
-			if strings.HasPrefix(line, "VmRSS:") {
-				fields := strings.Fields(line)
-				if len(fields) >= 2 {
-					kb, _ := strconv.Atoi(fields[1])
-					return float64(kb) / 1024
-				}
-			}
-		}
-	}
-
-	// Fallback: ps command
-	cmd := exec.Command("ps", "-p", strconv.Itoa(pid), "-o", "rss=")
-	output, _ := cmd.CombinedOutput()
-	kb, _ := strconv.Atoi(strings.TrimSpace(string(output)))
-	return float64(kb) / 1024
-}
-
-// parseStartTime gets the start time for a PID
-func (pm *ProcessMonitor) parseStartTime(pid int) time.Time {
-	// Try /proc/[pid]/stat
-	statPath := filepath.Join("/proc", strconv.Itoa(pid), "stat")
-	data, err := os.ReadFile(statPath)
-	if err == nil {
-		// stat format: pid (comm) state ppid pgrp session tty_nr tpgid flags minflt cminflt majflt cmajflt utime stime cutime cstime priority nice num_threads itrealvalue starttime
-		fields := strings.Fields(string(data))
-		if len(fields) > 21 {
-			ticks, _ := strconv.Atoi(fields[21])
-			// Convert jiffies to time
-			startTime := time.Now().Add(-time.Duration(ticks) * time.Millisecond)
-			return startTime
-		}
-	}
-
-	// Fallback: assume recently started
-	return time.Now()
 }
 
 // detectProjectName determines project name from working directory

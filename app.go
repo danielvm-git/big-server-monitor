@@ -108,6 +108,14 @@ func (a *App) KillProcess(pid int) error {
 	return a.processMonitor.KillProcess(pid)
 }
 
+// GetMonitorStatus returns the process monitor's health status.
+func (a *App) GetMonitorStatus() processmonitor.MonitorStatus {
+	if a.processMonitor == nil {
+		return processmonitor.MonitorStatus{Healthy: false, LastError: "not started"}
+	}
+	return a.processMonitor.GetMonitorStatus()
+}
+
 // ---------------------------------------------------------------------------
 // Wails bindings — healthcheck
 // ---------------------------------------------------------------------------
