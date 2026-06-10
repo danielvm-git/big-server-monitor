@@ -114,7 +114,7 @@ func (lc *LogCapture) Version() string {
 
 // Dependencies returns component dependencies.
 func (lc *LogCapture) Dependencies() []string {
-	return []string{"monitor"} // depends on monitor for process events
+	return []string{"processmonitor"}
 }
 
 // ConfigSchema returns the JSON schema for component configuration.
