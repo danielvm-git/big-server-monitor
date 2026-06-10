@@ -1,0 +1,15 @@
+session:
+  project: portkeeper
+  started: "2026-06-09"
+  status: planning
+
+active:
+  epic: e01-portkeeper-v1
+  story: null
+  phase: DISCOVER
+
+handoff: >
+  PortKeeper specs initialized. All 8 slices written (overview, architecture,
+  process-monitor, health-check, activity-log, log-capture, notifications,
+  settings, ui-menubar). Next step: run `seed-conventions` to bootstrap Go module
+  + Wails project structure, then `kickoff-branch` for slice 2 (process-monitor).

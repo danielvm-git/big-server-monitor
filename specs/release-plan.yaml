@@ -1,0 +1,67 @@
+project: portkeeper
+version: 1.0.0
+target: "2026-07-01"
+
+description: >
+  macOS menubar app for monitoring local development servers.
+  Go ECC kernel (BigBase architecture) + Wails v2 + React 19 frontend.
+  Visual style: BigBase Design System (same family as Big DockLocker).
+
+epics:
+  - id: e01
+    name: portkeeper-v1
+    description: "Full working macOS menubar app — all 7 screens, real data"
+    slices:
+      - "001-architecture"
+      - "002-process-monitor"
+      - "003-health-check"
+      - "004-activity-log"
+      - "005-log-capture"
+      - "006-notifications"
+      - "007-settings"
+      - "008-ui-menubar"
+    status: planning
+
+milestones:
+  - name: "M1: Core monitoring"
+    slices: ["002-process-monitor", "007-settings"]
+    description: "App lists real running processes from OS"
+    verify: "menubar badge shows correct count of listening ports"
+
+  - name: "M2: Full UI"
+    slices: ["008-ui-menubar"]
+    description: "All screens interactive with live data"
+    verify: "all sheets open, server rows expand, kill dialog works"
+
+  - name: "M3: Health + Logs"
+    slices: ["003-health-check", "005-log-capture"]
+    description: "HTTP probing and log capture working"
+    verify: "health check shows latency; Copy for AI produces correct block"
+
+  - name: "M4: History + Alerts"
+    slices: ["004-activity-log", "006-notifications"]
+    description: "Activity timeline persisted; crash notification delivered"
+    verify: "kill process → notification banner + activity log entry"
+
+  - name: "M5: Ship"
+    description: "Signed .app bundle, launch at login, App Store or direct distribution"
+    verify: "wails build produces signed .app; codesign --verify passes"
+
+stack:
+  language: go
+  version: "1.22+"
+  ui_framework: wails-v2
+  frontend: react-19 + vite-8
+  db: sqlite
+  test: vitest-4 + playwright-1.60
+  design_system: bigbase-design-system
+  icon_set: lucide-react
+
+opensrc_packages_used:
+  - react@19.2.7
+  - vite@8.0.16
+  - react-router-dom@7.16.0
+  - vitest@4.1.8
+  - "@playwright/test@1.60.0"
+  - apple/swift-nio (reference only — macOS API patterns)
+  - github.com/danielvm-git/bigbase (architecture reference + design system)
