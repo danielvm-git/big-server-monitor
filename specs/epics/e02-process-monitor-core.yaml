@@ -1,0 +1,34 @@
+epic: e02
+name: process-monitor-core
+status: pending
+goal: >
+  Actor-based process monitoring: poll lsof every 5s, diff listening ports into
+  started/stopped events, enrich with ps metadata, detect project names from
+  marker files, redact sensitive env vars, kill processes. Port behaviors and
+  test fixtures from components/processmonitor/*.go.
+
+stories:
+  - id: e02s01
+    title: Port discovery (lsof parsing)
+    acceptance: >
+      Given captured lsof -iTCP -sTCP:LISTEN -P -n output, parsing yields
+      (port, pid, command) tuples; netstat fallback when lsof missing.
+    tasks:
+      - desc: "Models.swift: Server, ServerStatus, ServerEvent (Sendable)"
+        verify: "swift test --filter ModelsTests || xcodebuild test -only-testing BigServerMonitorTests/PortDiscoveryTests"
+      - desc: "PortDiscovery.swift: run lsof via Process, parse output; fixtures from Go tests"
+        verify: "xcodebuild test -only-testing BigServerMonitorTests/PortDiscoveryTests"
+  - id: e02s02
+    title: Polling monitor actor
+    acceptance: >
+      ProcessMonitor actor polls at configured interval, diffs port set,
+      yields .started/.stopped via AsyncStream, tracks uptime and memory (ps),
+      detects project name via package.json/go.mod/Cargo.toml markers,
+      redacts env values matching KEY/TOKEN/SECRET/PASSWORD patterns.
+    tasks:
+      - desc: "ProcessMonitor actor: poll loop, diff, AsyncStream<ServerEvent>"
+        verify: "xcodebuild test -only-testing BigServerMonitorTests/ProcessMonitorTests"
+      - desc: "Project marker detection + env redaction (pure functions, table-driven tests)"
+        verify: "xcodebuild test -only-testing BigServerMonitorTests/ProjectDetectionTests"
+      - desc: "killProcess(pid:) using Darwin kill(2) with error mapping"
+        verify: "xcodebuild test -only-testing BigServerMonitorTests/KillTests"

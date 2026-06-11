@@ -1,0 +1,34 @@
+epic: e05
+name: settings-notifications
+status: pending
+goal: >
+  Settings persistence + sheet (scan dirs, intervals, ignored ports, toggles),
+  SMAppService launch-at-login, UserNotifications crash alerts with 60s
+  per-port rate limit, structured JSON file logging.
+
+stories:
+  - id: e05s01
+    title: Settings store + sheet
+    acceptance: >
+      Config codable JSON at Application Support/BigServerMonitor/config.json;
+      defaults (5s monitor, 30s health, 30-day retention); ignored ports and
+      intervals respected by monitor/health actors; settings sheet matches
+      design (dir list, intervals grid, ignored ports, three toggles).
+    tasks:
+      - desc: "SettingsStore: Codable Config, load/save/reset, defaults"
+        verify: "xcodebuild test -only-testing BigServerMonitorTests/SettingsStoreTests"
+      - desc: "SettingsView sheet + wiring intervals/ignored ports into actors"
+        verify: "xcodebuild build"
+      - desc: "Launch at login via SMAppService.mainApp"
+        verify: "xcodebuild build"
+  - id: e05s02
+    title: Crash notifications + JSON logging
+    acceptance: >
+      Unexpected stop → UNUserNotification 'Port N crashed' with process and
+      uptime; max one per port per 60s; honors crashAlerts toggle. App events
+      logged as JSON lines to Application Support/BigServerMonitor/bigservermonitor.log.
+    tasks:
+      - desc: "Notifier: permission request, rate limiter, crash hook"
+        verify: "xcodebuild test -only-testing BigServerMonitorTests/NotifierTests"
+      - desc: "JSONLogger: time/level/msg/context JSON lines to file"
+        verify: "xcodebuild test -only-testing BigServerMonitorTests/JSONLoggerTests"

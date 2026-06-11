@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BigServerMonitor — Logo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand-500: #4F46E5;
+      --brand-600: #4338CA;
+      --brand-700: #3730A3;
+      --neutral-0:   #ffffff;
+      --neutral-25:  #fafafc;
+      --neutral-40:  #f4f4f7;
+      --neutral-50:  #ededf0;
+      --neutral-100: #e4e4e7;
+      --neutral-200: #d8d8db;
+      --neutral-600: #6c6c71;
+      --neutral-700: #56565c;
+      --neutral-800: #2d2d31;
+      --neutral-850: #1d1d21;
+      --neutral-900: #19191c;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--neutral-40);
+      color: var(--neutral-800);
+      min-height: 100vh;
+      padding: 48px 40px;
+    }
+
+    h1 {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--neutral-600);
+      margin-bottom: 40px;
+    }
+
+    /* ── Section ───────────────────────────── */
+    .section {
+      margin-bottom: 48px;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--neutral-600);
+      margin-bottom: 20px;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+
+    /* ── Swatch cards ──────────────────────── */
+    .card {
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 36px 48px;
+      flex-shrink: 0;
+    }
+    .card-light {
+      background: var(--neutral-0);
+      border: 1px solid var(--neutral-100);
+      box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    }
+    .card-subtle {
+      background: var(--neutral-40);
+      border: 1px solid var(--neutral-100);
+    }
+    .card-dark {
+      background: var(--neutral-850);
+    }
+    .card-brand {
+      background: var(--brand-500);
+    }
+
+    /* ── Logo lockup ───────────────────────── */
+    .lockup {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .lockup-sm  { gap: 8px; }
+    .lockup-xs  { gap: 6px; }
+
+    .wordmark {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--neutral-800);
+      line-height: 1;
+    }
+    .wordmark-lg  { font-size: 28px; }
+    .wordmark-md  { font-size: 20px; }
+    .wordmark-sm  { font-size: 15px; }
+    .wordmark-xs  { font-size: 12px; }
+
+    .wordmark-light { color: var(--neutral-0); }
+    .wordmark-muted { color: var(--neutral-600); }
+
+    /* ── Stacked lockup ────────────────────── */
+    .lockup-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .tagline {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--neutral-600);
+    }
+    .tagline-light {
+      color: rgba(255,255,255,0.65);
+    }
+
+    /* ── Mark-only sizes ───────────────────── */
+    .mark-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .size-label {
+      font-size: 11px;
+      color: var(--neutral-600);
+      font-weight: 500;
+      min-width: 32px;
+    }
+
+    /* ── Divider ───────────────────────────── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--neutral-100);
+      margin: 8px 0 32px;
+    }
+
+    /* Icon SVG inline styles */
+    .icon-svg rect.bg { fill: var(--brand-500); }
+  </style>
+</head>
+<body>
+
+  <h1>BigServerMonitor — Logo</h1>
+
+  <!-- ── PRIMARY LOCKUP ─────────────────────────────────── -->
+  <div class="section">
+    <div class="section-label">Primary lockup</div>
+    <div class="row">
+
+      <!-- Light surface -->
+      <div class="card card-light">
+        <div class="lockup">
+          <svg width="48" height="48" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="120" height="120" rx="28" fill="#4F46E5"/>
+            <polyline points="22,38 36,38 43,22 52,54 59,38 98,38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <rect x="22" y="62" width="76" height="10" rx="3" fill="white"/>
+            <rect x="22" y="77" width="76" height="10" rx="3" fill="white" opacity="0.72"/>
+            <rect x="22" y="92" width="76" height="10" rx="3" fill="white" opacity="0.44"/>
+          </svg>
+          <span class="wordmark wordmark-lg">BigServerMonitor</span>
+        </div>
+      </div>
+
+      <!-- Dark surface -->
+      <div class="card card-dark">
+        <div class="lockup">
+          <svg width="48" height="48" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="120" height="120" rx="28" fill="#4F46E5"/>
+            <polyline points="22,38 36,38 43,22 52,54 59,38 98,38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <rect x="22" y="62" width="76" height="10" rx="3" fill="white"/>
+            <rect x="22" y="77" width="76" height="10" rx="3" fill="white" opacity="0.72"/>
+            <rect x="22" y="92" width="76" height="10" rx="3" fill="white" opacity="0.44"/>
+          </svg>
+          <span class="wordmark wordmark-lg wordmark-light">BigServerMonitor</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── STACKED LOCKUP ─────────────────────────────────── -->
+  <div class="section">
+    <div class="section-label">Stacked lockup</div>
+    <div class="row">
+
+      <div class="card card-light" style="padding: 40px 56px;">
+        <div class="lockup-stack">
+          <svg width="64" height="64" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="120" height="120" rx="28" fill="#4F46E5"/>
+            <polyline points="22,38 36,38 43,22 52,54 59,38 98,38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <rect x="22" y="62" width="76" height="10" rx="3" fill="white"/>
+            <rect x="22" y="77" width="76" height="10" rx="3" fill="white" opacity="0.72"/>
+            <rect x="22" y="92" width="76" height="10" rx="3" fill="white" opacity="0.44"/>
+          </svg>
+          <span class="wordmark wordmark-md" style="letter-spacing: -0.01em;">BigServerMonitor</span>
+          <span class="tagline">Infrastructure Monitoring</span>
+        </div>
+      </div>
+
+      <div class="card card-brand" style="padding: 40px 56px;">
+        <div class="lockup-stack">
+          <svg width="64" height="64" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="120" height="120" rx="28" fill="rgba(255,255,255,0.15)"/>
+            <polyline points="22,38 36,38 43,22 52,54 59,38 98,38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <rect x="22" y="62" width="76" height="10" rx="3" fill="white"/>
+            <rect x="22" y="77" width="76" height="10" rx="3" fill="white" opacity="0.72"/>
+            <rect x="22" y="92" width="76" height="10" rx="3" fill="white" opacity="0.44"/>
+          </svg>
+          <span class="wordmark wordmark-md wordmark-light">BigServerMonitor</span>
+          <span class="tagline tagline-light">Infrastructure Monitoring</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── MARK ONLY ──────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-label">Mark only — sizes</div>
+    <div class="row">
+
+      <div class="card card-light" style="padding: 28px 36px; flex-direction: column; gap: 20px; align-items: flex-start;">
+
+        <div class="mark-wrap">
+          <span class="size-label">64px</span>
+          <svg width="64" height="64" viewBox="0 0 120 120" fill="none"><rect width="120" height="120" rx="28" fill="#4F46E5"/><polyline points="22,38 36,38 43,22 52,54 59,38 98,38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="22" y="62" width="76" height="10" rx="3" fill="white"/><rect x="22" y="77" width="76" height="10" rx="3" fill="white" opacity="0.72"/><rect x="22" y="92" width="76" height="10" rx="3" fill="white" opacity="0.44"/></svg>
+        </div>
+
+        <div class="mark-wrap">
+          <span class="size-label">40px</span>
+          <svg width="40" height="40" viewBox="0 0 120 120" fill="none"><rect width="120" height="120" rx="28" fill="#4F46E5"/><polyline points="22,38 36,38 43,22 52,54 59,38 98,38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="22" y="62" width="76" height="10" rx="3" fill="white"/><rect x="22" y="77" width="76" height="10" rx="3" fill="white" opacity="0.72"/><rect x="22" y="92" width="76" height="10" rx="3" fill="white" opacity="0.44"/></svg>
+        </div>
+
+        <div class="mark-wrap">
+          <span class="size-label">28px</span>
+          <svg width="28" height="28" viewBox="0 0 120 120" fill="none"><rect width="120" height="120" rx="28" fill="#4F46E5"/><polyline points="22,38 36,38 43,22 52,54 59,38 98,38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="22" y="62" width="76" height="10" rx="3" fill="white"/><rect x="22" y="77" width="76" height="10" rx="3" fill="white" opacity="0.72"/><rect x="22" y="92" width="76" height="10" rx="3" fill="white" opacity="0.44"/></svg>
+        </div>
+
+        <div class="mark-wrap">
+          <span class="size-label">20px</span>
+          <svg width="20" height="20" viewBox="0 0 120 120" fill="none"><rect width="120" height="120" rx="28" fill="#4F46E5"/><polyline points="22,38 36,38 43,22 52,54 59,38 98,38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="22" y="62" width="76" height="10" rx="3" fill="white"/><rect x="22" y="77" width="76" height="10" rx="3" fill="white" opacity="0.72"/><rect x="22" y="92" width="76" height="10" rx="3" fill="white" opacity="0.44"/></svg>
+        </div>
+
+      </div>
+
+      <!-- mark on dark surface -->
+      <div class="card card-dark" style="padding: 28px 36px; flex-direction: column; gap: 20px; align-items: flex-start;">
+
+        <div class="mark-wrap">
+          <span class="size-label" style="color:#6c6c71">64px</span>
+          <svg width="64" height="64" viewBox="0 0 120 120" fill="none"><rect width="120" height="120" rx="28" fill="#4F46E5"/><polyline points="22,38 36,38 43,22 52,54 59,38 98,38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="22" y="62" width="76" height="10" rx="3" fill="white"/><rect x="22" y="77" width="76" height="10" rx="3" fill="white" opacity="0.72"/><rect x="22" y="92" width="76" height="10" rx="3" fill="white" opacity="0.44"/></svg>
+        </div>
+
+        <div class="mark-wrap">
+          <span class="size-label" style="color:#6c6c71">40px</span>
+          <svg width="40" height="40" viewBox="0 0 120 120" fill="none"><rect width="120" height="120" rx="28" fill="#4F46E5"/><polyline points="22,38 36,38 43,22 52,54 59,38 98,38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="22" y="62" width="76" height="10" rx="3" fill="white"/><rect x="22" y="77" width="76" height="10" rx="3" fill="white" opacity="0.72"/><rect x="22" y="92" width="76" height="10" rx="3" fill="white" opacity="0.44"/></svg>
+        </div>
+
+        <div class="mark-wrap">
+          <span class="size-label" style="color:#6c6c71">28px</span>
+          <svg width="28" height="28" viewBox="0 0 120 120" fill="none"><rect width="120" height="120" rx="28" fill="#4F46E5"/><polyline points="22,38 36,38 43,22 52,54 59,38 98,38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="22" y="62" width="76" height="10" rx="3" fill="white"/><rect x="22" y="77" width="76" height="10" rx="3" fill="white" opacity="0.72"/><rect x="22" y="92" width="76" height="10" rx="3" fill="white" opacity="0.44"/></svg>
+        </div>
+
+        <div class="mark-wrap">
+          <span class="size-label" style="color:#6c6c71">20px</span>
+          <svg width="20" height="20" viewBox="0 0 120 120" fill="none"><rect width="120" height="120" rx="28" fill="#4F46E5"/><polyline points="22,38 36,38 43,22 52,54 59,38 98,38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="22" y="62" width="76" height="10" rx="3" fill="white"/><rect x="22" y="77" width="76" height="10" rx="3" fill="white" opacity="0.72"/><rect x="22" y="92" width="76" height="10" rx="3" fill="white" opacity="0.44"/></svg>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SIDEBAR CONTEXT ─────────────────────────────────── -->
+  <div class="section">
+    <div class="section-label">In context — sidebar</div>
+    <div class="row" style="align-items: flex-start;">
+
+      <!-- Light sidebar -->
+      <div style="background: var(--neutral-0); border: 1px solid var(--neutral-100); border-radius: 16px; padding: 20px 18px; width: 220px; box-shadow: 0 1px 3px rgba(0,0,0,.06);">
+        <div class="lockup lockup-sm" style="margin-bottom: 24px;">
+          <svg width="28" height="28" viewBox="0 0 120 120" fill="none"><rect width="120" height="120" rx="28" fill="#4F46E5"/><polyline points="22,38 36,38 43,22 52,54 59,38 98,38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="22" y="62" width="76" height="10" rx="3" fill="white"/><rect x="22" y="77" width="76" height="10" rx="3" fill="white" opacity="0.72"/><rect x="22" y="92" width="76" height="10" rx="3" fill="white" opacity="0.44"/></svg>
+          <span class="wordmark" style="font-size: 15px; color: var(--neutral-800);">BigServerMonitor</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(79,70,229,.08);border-radius:8px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            <span style="font-size:13px;font-weight:600;color:#4F46E5;">Overview</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6c6c71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <span style="font-size:13px;color:#6c6c71;">Metrics</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6c6c71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/></svg>
+            <span style="font-size:13px;color:#6c6c71;">Servers</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6c6c71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+            <span style="font-size:13px;color:#6c6c71;">Logs</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dark sidebar -->
+      <div style="background: var(--neutral-850); border-radius: 16px; padding: 20px 18px; width: 220px;">
+        <div class="lockup lockup-sm" style="margin-bottom: 24px;">
+          <svg width="28" height="28" viewBox="0 0 120 120" fill="none"><rect width="120" height="120" rx="28" fill="#4F46E5"/><polyline points="22,38 36,38 43,22 52,54 59,38 98,38" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="22" y="62" width="76" height="10" rx="3" fill="white"/><rect x="22" y="77" width="76" height="10" rx="3" fill="white" opacity="0.72"/><rect x="22" y="92" width="76" height="10" rx="3" fill="white" opacity="0.44"/></svg>
+          <span class="wordmark wordmark-light" style="font-size: 15px;">BigServerMonitor</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(79,70,229,.2);border-radius:8px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            <span style="font-size:13px;font-weight:600;color:#818cf8;">Overview</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#56565c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <span style="font-size:13px;color:#56565c;">Metrics</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#56565c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/></svg>
+            <span style="font-size:13px;color:#56565c;">Servers</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#56565c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+            <span style="font-size:13px;color:#56565c;">Logs</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

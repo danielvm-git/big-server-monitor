@@ -1,0 +1,31 @@
+epic: e03
+name: popover-ui
+status: pending
+goal: >
+  360pt popover matching specs/design-handoff/PortKeeper.html: header with
+  wordmark + active count + refresh, scrollable server list with expandable
+  rows, PROJECTS section, footer buttons, kill confirm dialog, menubar badge.
+
+stories:
+  - id: e03s01
+    title: Popover layout and server rows
+    acceptance: >
+      Popover shows title/subtitle/refresh; each server row has status dot
+      (green glow online / red offline / gray unknown), mono :port, process,
+      project name, uptime; click expands PID/Memory/Binary card; trailing
+      logs + kill buttons (kill only when online).
+    tasks:
+      - desc: "AppState (@Observable) consuming ProcessMonitor stream"
+        verify: "xcodebuild test -only-testing BigServerMonitorTests/AppStateTests"
+      - desc: "PopoverView + ServerRowView + ProjectsSection + footer"
+        verify: "xcodebuild build"
+  - id: e03s02
+    title: Kill flow + menubar badge
+    acceptance: >
+      Kill button opens confirm 'Kill {process} on :{port}?'; confirming kills
+      the PID and the row goes offline; menubar item shows active-server count.
+    tasks:
+      - desc: "KillConfirmDialog + wiring to ProcessMonitor.killProcess"
+        verify: "xcodebuild build"
+      - desc: "MenuBarExtra label with template icon + count badge"
+        verify: "xcodebuild build"

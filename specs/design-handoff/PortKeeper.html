@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortKeeper</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --font: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      --mono: 'SF Mono', Menlo, 'Courier New', monospace;
+      --desktop: linear-gradient(155deg, #1a237e 0%, #1565c0 35%, #0288d1 65%, #4dd0e1 100%);
+      --menubar-bg: rgba(34, 34, 36, 0.92);
+      --pop-bg: rgba(248, 248, 248, 0.98);
+      --pop-border: rgba(0,0,0,0.18);
+      --win-title: #ebebeb;
+      --win-title-border: rgba(0,0,0,0.14);
+      --win-bg: #ffffff;
+      --text: #1c1c1e;
+      --text2: #6e6e73;
+      --text3: #aeaeb2;
+      --sep: rgba(0,0,0,0.1);
+      --hover: rgba(0,0,0,0.05);
+      --pressed: rgba(0,0,0,0.08);
+      --card-bg: rgba(0,0,0,0.04);
+      --card-border: rgba(0,0,0,0.08);
+      --blue: #007aff;
+      --green: #34c759;
+      --red: #ff3b30;
+      --orange: #ff9f0a;
+      --tl-r: #ff5f57; --tl-y: #febc2e; --tl-g: #28c840;
+    }
+    [data-theme="dark"] {
+      --desktop: linear-gradient(155deg, #0a0a1a 0%, #0d1b2a 35%, #0a1628 65%, #111827 100%);
+      --pop-bg: rgba(40, 40, 44, 0.98);
+      --pop-border: rgba(255,255,255,0.14);
+      --win-title: #323234;
+      --win-title-border: rgba(255,255,255,0.08);
+      --win-bg: #1c1c1e;
+      --text: #f5f5f7;
+      --text2: #98989f;
+      --text3: #6e6e73;
+      --sep: rgba(255,255,255,0.1);
+      --hover: rgba(255,255,255,0.06);
+      --pressed: rgba(255,255,255,0.1);
+      --card-bg: rgba(255,255,255,0.06);
+      --card-border: rgba(255,255,255,0.1);
+    }
+
+    body { font-family: var(--font); -webkit-font-smoothing: antialiased; overflow: hidden; }
+
+    /* ── Desktop ── */
+    .desktop { width: 100vw; height: 100vh; background: var(--desktop); display: flex; flex-direction: column; }
+    .desktop-area { flex: 1; position: relative; overflow: hidden; }
+
+    /* ── Menubar ── */
+    .menubar {
+      height: 28px; background: var(--menubar-bg);
+      backdrop-filter: blur(40px) saturate(200%);
+      -webkit-backdrop-filter: blur(40px) saturate(200%);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 10px; flex-shrink: 0; position: relative; z-index: 200;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .mb-left { display: flex; align-items: center; gap: 14px; }
+    .mb-apple { font-size: 15px; color: rgba(255,255,255,0.85); line-height: 1; }
+    .mb-app { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.88); }
+    .mb-menu { font-size: 13px; color: rgba(255,255,255,0.62); }
+    .mb-right { display: flex; align-items: center; gap: 2px; }
+    .mb-sys { font-size: 12px; color: rgba(255,255,255,0.72); padding: 2px 6px; border-radius: 4px; cursor: default; }
+    .mb-pk {
+      display: flex; align-items: center; gap: 4px;
+      padding: 2px 7px; border-radius: 5px; cursor: pointer;
+      transition: background 120ms;
+      position: relative;
+      user-select: none;
+    }
+    .mb-pk:hover { background: rgba(255,255,255,0.12); }
+    .mb-pk.open { background: rgba(255,255,255,0.18); }
+    .pk-icon-svg { width: 14px; height: 14px; color: rgba(255,255,255,0.9); }
+    .pk-badge {
+      background: #ff3b30; color: #fff; font-size: 9px; font-weight: 700;
+      border-radius: 99px; min-width: 14px; height: 14px; padding: 0 3px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── Popover ── */
+    .popover-positioner { position: fixed; top: 28px; right: 8px; z-index: 300; width: 360px; }
+    .popover {
+      background: var(--pop-bg);
+      border: 1px solid var(--pop-border);
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.14);
+      overflow: hidden;
+      animation: popIn 160ms cubic-bezier(.32,.72,0,1);
+    }
+    @keyframes popIn { from { opacity:0; transform:scale(.97) translateY(-6px); } to { opacity:1; transform:none; } }
+
+    .pop-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid var(--sep);
+    }
+    .pop-title { font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: -.01em; }
+    .pop-subtitle { font-size: 11px; color: var(--text2); margin-top: 1px; }
+    .pop-refresh {
+      width: 26px; height: 26px; border-radius: 6px; border: none;
+      background: var(--card-bg); cursor: pointer; color: var(--text2);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 120ms;
+    }
+    .pop-refresh:hover { background: var(--hover); color: var(--text); }
+
+    /* ── Server rows ── */
+    .servers-list { max-height: 280px; overflow-y: auto; }
+    .server-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 9px 14px; cursor: pointer; transition: background 120ms;
+    }
+    .server-row:hover { background: var(--hover); }
+    .server-row:active { background: var(--pressed); }
+    .srv-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .srv-dot.online { background: #30d158; box-shadow: 0 0 5px rgba(48,209,88,0.5); }
+    .srv-dot.offline { background: #ff3b30; }
+    .srv-dot.unknown { background: #aeaeb2; }
+    .srv-info { flex: 1; min-width: 0; }
+    .srv-top { display: flex; align-items: baseline; gap: 6px; }
+    .srv-port { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text); }
+    .srv-process { font-size: 11px; color: var(--text2); }
+    .srv-name { font-size: 12px; color: var(--text2); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .srv-uptime { font-size: 11px; color: var(--text3); margin-top: 1px; }
+    .srv-expanded {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-top: 8px; padding: 8px 10px;
+      background: var(--card-bg); border-radius: 7px;
+    }
+    .srv-detail-key { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text3); }
+    .srv-detail-val { font-family: var(--mono); font-size: 11px; color: var(--text); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .srv-kill {
+      width: 22px; height: 22px; border-radius: 5px; border: none; flex-shrink: 0;
+      background: rgba(255,59,48,0.1); color: #ff3b30; cursor: pointer;
+      font-size: 11px; display: flex; align-items: center; justify-content: center;
+      transition: all 120ms; margin-top: 2px;
+    }
+    .srv-kill:hover { background: #ff3b30; color: #fff; }
+
+    /* ── Projects section ── */
+    .pop-section { padding: 8px 14px; border-top: 1px solid var(--sep); }
+    .pop-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 6px; }
+    .proj-row { display: flex; align-items: center; gap: 6px; padding: 3px 0; }
+    .proj-icon { font-size: 12px; }
+    .proj-name { font-size: 12px; color: var(--text2); font-family: var(--mono); }
+    .proj-count { font-size: 11px; color: var(--text3); }
+
+    /* ── Popover footer ── */
+    .pop-footer { padding: 8px 10px; border-top: 1px solid var(--sep); display: flex; flex-direction: column; gap: 2px; }
+    .pop-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 10px; border-radius: 7px; border: none;
+      background: none; cursor: pointer; width: 100%; text-align: left;
+      color: var(--text); font-family: var(--font); font-size: 13px;
+      transition: background 120ms;
+    }
+    .pop-btn:hover { background: var(--hover); }
+    .pop-btn:active { background: var(--pressed); }
+    .pop-btn-icon { width: 16px; height: 16px; color: var(--text2); flex-shrink: 0; }
+
+    /* ── Mac window (sheets) ── */
+    .win-overlay {
+      position: fixed; inset: 0; z-index: 400; display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.25);
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      animation: fadeIn 160ms;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .mac-window {
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.45), 0 4px 16px rgba(0,0,0,0.2);
+      animation: winIn 200ms cubic-bezier(.32,.72,0,1);
+      width: 540px; max-height: 80vh; display: flex; flex-direction: column;
+    }
+    @keyframes winIn { from { opacity:0; transform:scale(.96) translateY(12px); } to { opacity:1; transform:none; } }
+    .mac-titlebar {
+      background: var(--win-title); height: 38px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      border-bottom: 1px solid var(--win-title-border);
+      position: relative; user-select: none;
+    }
+    .traffic-lights { position: absolute; left: 12px; display: flex; gap: 6px; }
+    .tl { width: 12px; height: 12px; border-radius: 50%; border: none; cursor: pointer; transition: filter 120ms; }
+    .tl-r { background: var(--tl-r); }
+    .tl-y { background: var(--tl-y); }
+    .tl-g { background: var(--tl-g); }
+    .tl:hover { filter: brightness(0.88); }
+    .win-title { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: -.01em; }
+    .mac-body { background: var(--win-bg); flex: 1; overflow-y: auto; }
+
+    /* ── Health check ── */
+    .hc-row {
+      display: flex; align-items: center; padding: 10px 18px;
+      border-bottom: 1px solid var(--sep); gap: 12px;
+    }
+    .hc-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .hc-port { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text); width: 52px; }
+    .hc-name { font-size: 12px; color: var(--text2); flex: 1; }
+    .hc-code { font-family: var(--mono); font-size: 12px; color: var(--text); width: 36px; text-align: right; }
+    .hc-lat  { font-family: var(--mono); font-size: 12px; color: var(--text3); width: 48px; text-align: right; }
+    .hc-tag {
+      font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+      padding: 2px 7px; border-radius: 99px;
+    }
+    .hc-tag.ok  { background: rgba(52,199,89,0.15);  color: #1a8a38; }
+    .hc-tag.err { background: rgba(255,59,48,0.12);  color: #c0392b; }
+    .hc-tag.slow{ background: rgba(255,159,10,0.15); color: #b7610a; }
+    [data-theme="dark"] .hc-tag.ok  { color: #30d158; }
+    [data-theme="dark"] .hc-tag.err { color: #ff453a; }
+    [data-theme="dark"] .hc-tag.slow{ color: #ff9f0a; }
+
+    /* ── Activity log ── */
+    .tl-item { display: flex; gap: 12px; padding: 11px 18px; border-bottom: 1px solid var(--sep); }
+    .tl-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .tl-title { font-size: 13px; font-weight: 500; color: var(--text); }
+    .tl-body  { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .tl-time  { font-family: var(--mono); font-size: 11px; color: var(--text3); flex-shrink: 0; padding-top: 2px; }
+
+    /* ── Logs terminal ── */
+    .log-term {
+      background: #1e1e1e; font-family: var(--mono); font-size: 12px;
+      line-height: 1.8; padding: 14px 16px; overflow-y: auto; flex: 1;
+    }
+    .log-l { color: #d4d4d4; }
+    .log-l.ok { color: #4ec9b0; }
+    .log-l.err { color: #f44747; }
+    .log-l.warn { color: #dcdcaa; }
+    .log-ts { color: #858585; margin-right: 8px; }
+
+    /* ── Settings ── */
+    .settings-section { padding: 16px 18px; border-bottom: 1px solid var(--sep); }
+    .settings-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 10px; }
+    .settings-input {
+      width: 100%; padding: 7px 10px;
+      border: 1px solid var(--sep); border-radius: 8px;
+      background: var(--card-bg); color: var(--text);
+      font-family: var(--mono); font-size: 12px;
+      outline: none; transition: border-color 120ms;
+    }
+    .settings-input:focus { border-color: var(--blue); }
+    .settings-dir-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+    .settings-dir {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 10px; background: var(--card-bg);
+      border: 1px solid var(--card-border); border-radius: 8px;
+    }
+    .settings-dir-name { flex: 1; font-family: var(--mono); font-size: 12px; color: var(--text2); }
+    .settings-dir-del { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 14px; line-height: 1; }
+    .settings-dir-del:hover { color: #ff3b30; }
+    .settings-add { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--blue); background: none; border: none; cursor: pointer; padding: 2px 0; }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--sep); }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-label { font-size: 13px; color: var(--text); }
+    .toggle-desc  { font-size: 11px; color: var(--text2); margin-top: 1px; }
+    .mac-toggle {
+      width: 38px; height: 22px; border-radius: 11px; border: none; cursor: pointer;
+      position: relative; flex-shrink: 0; transition: background 200ms;
+    }
+    .mac-toggle.on  { background: #34c759; }
+    .mac-toggle.off { background: rgba(120,120,128,0.3); }
+    .mac-toggle::after {
+      content: ''; position: absolute; width: 18px; height: 18px;
+      border-radius: 50%; background: #fff; top: 2px; left: 2px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+      transition: left 200ms cubic-bezier(.32,.72,0,1);
+    }
+    .mac-toggle.on::after { left: 18px; }
+
+    /* ── Win footer ── */
+    .win-footer {
+      padding: 12px 18px; border-top: 1px solid var(--sep);
+      display: flex; gap: 8px; justify-content: flex-end;
+      background: var(--win-bg); flex-shrink: 0;
+    }
+    .mac-btn {
+      padding: 5px 16px; border-radius: 6px; border: none;
+      font-family: var(--font); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: filter 120ms;
+    }
+    .mac-btn:hover { filter: brightness(0.92); }
+    .mac-btn.primary { background: var(--blue); color: #fff; }
+    .mac-btn.default { background: var(--card-bg); color: var(--text); border: 1px solid var(--sep); }
+    .mac-btn.danger  { background: #ff3b30; color: #fff; }
+
+    /* ── Confirm dialog ── */
+    .confirm-box {
+      background: var(--pop-bg); border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      padding: 20px 24px; width: 300px; text-align: center;
+      animation: winIn 160ms cubic-bezier(.32,.72,0,1);
+    }
+    .confirm-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .confirm-body  { font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 16px; }
+    .confirm-btns  { display: flex; gap: 8px; }
+    .confirm-btns .mac-btn { flex: 1; }
+
+    /* ── Notification ── */
+    .notif {
+      position: fixed; top: 40px; right: 12px; z-index: 600;
+      background: var(--pop-bg); border: 1px solid var(--pop-border);
+      border-radius: 14px; padding: 12px 14px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+      width: 320px; display: flex; gap: 10px; align-items: flex-start;
+      animation: notifIn 240ms cubic-bezier(.32,.72,0,1);
+      cursor: pointer;
+    }
+    @keyframes notifIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:none; } }
+    .notif-app-icon {
+      width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+      background: linear-gradient(135deg, #1a237e, #0288d1);
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .notif-title { font-size: 13px; font-weight: 700; color: var(--text); }
+    .notif-body  { font-size: 12px; color: var(--text2); margin-top: 2px; line-height: 1.4; }
+    .notif-time  { font-size: 11px; color: var(--text3); }
+
+    /* ── Section header in windows ── */
+    .win-section-header {
+      padding: 10px 18px 6px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .win-section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); }
+
+    /* ── Util ── */
+    .gap2 { display: flex; flex-direction: column; gap: 2px; }
+    svg { display: block; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel">
+  (function () {
+    const { useState, useEffect, useCallback, useRef } = React;
+
+    /* ── Inline SVG icons ─────────────────────────────────────────────── */
+    const Ico = ({ d, size = 14, stroke = 'currentColor', fill = 'none', sw = 1.75, style = {} }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={stroke}
+        strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" style={style}>
+        <path d={d} />
+      </svg>
+    );
+    const IcoRefresh  = (p) => <Ico {...p} d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16M3 21v-5h5" />;
+    const IcoActivity = (p) => <svg width={p.size||14} height={p.size||14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>;
+    const IcoSettings = (p) => <svg width={p.size||14} height={p.size||14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
+    const IcoHeart   = (p) => <Ico {...p} d="M22 12h-4l-3 9L9 3l-3 9H2" />;
+    const IcoCopy    = (p) => <Ico {...p} d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2M8 4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2z" />;
+    const IcoTerm    = (p) => <Ico {...p} d="M4 17l6-6-6-6M12 19h8" />;
+    const IcoPlus    = (p) => <Ico {...p} d="M12 5v14M5 12h14" />;
+    const IcoX       = (p) => <Ico {...p} d="M18 6 6 18M6 6l12 12" />;
+    const IcoLogs    = (p) => <Ico {...p} d="M4 17l6-6-6-6M12 19h8" />;
+    const IcoBot     = (p) => <svg width={p.size||14} height={p.size||14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>;
+    const IcoZap     = (p) => <svg width={p.size||14} height={p.size||14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>;
+
+    /* ── Data ──────────────────────────────────────────────────────────── */
+    const INIT = [
+      { id:1, port:3000, process:'node',    name:'bigbase-api', status:'online',  uptime:'2h 03m', pid:1024, binary:'/usr/local/bin/node',    memory:'124 MB', project:'~/projects/bigbase'  },
+      { id:2, port:5173, process:'vite',    name:'frontend',    status:'online',  uptime:'45m',    pid:2048, binary:'/usr/local/bin/vite',    memory:'89 MB',  project:'~/projects/bigbase'  },
+      { id:3, port:8080, process:'python3', name:'api-server',  status:'offline', uptime:'—',      pid:null, binary:'/usr/bin/python3',        memory:'0 MB',   project:'~/projects/opensrc' },
+      { id:4, port:4321, process:'bun',     name:'docs-site',   status:'online',  uptime:'3h 17m', pid:3120, binary:'/usr/local/bin/bun',     memory:'42 MB',  project:'~/projects/opensrc' },
+    ];
+    const HEALTH = [
+      { port:3000, name:'bigbase-api', status:'ok',   code:200, lat:12  },
+      { port:5173, name:'frontend',    status:'ok',   code:200, lat:8   },
+      { port:8080, name:'api-server',  status:'err',  code:0,   lat:0   },
+      { port:4321, name:'docs-site',   status:'slow', code:200, lat:340 },
+    ];
+    const ACTIVITY = [
+      { id:1, time:'15:01', type:'error',   title:'node :3000 started',           body:'bigbase-api started successfully' },
+      { id:2, time:'15:45', type:'warning', title:'vite :5173 unresponsive',      body:'No HTTP response — auto-recovered in 4s' },
+      { id:3, time:'16:01', type:'error',   title:'python3 :8080 crashed',        body:'Exit code 1 — api-server · check logs' },
+      { id:4, time:'16:10', type:'success', title:'bun :4321 started',            body:'docs-site started successfully' },
+    ];
+
+    /* ── MacWindow wrapper ──────────────────────────────────────────────── */
+    function MacWindow({ title, onClose, children, footer, width = 540 }) {
+      return (
+        <div className="win-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+          <div className="mac-window" style={{ width }}>
+            <div className="mac-titlebar">
+              <div className="traffic-lights">
+                <button className="tl tl-r" onClick={onClose} title="Close"></button>
+                <button className="tl tl-y"></button>
+                <button className="tl tl-g"></button>
+              </div>
+              <div className="win-title">{title}</div>
+            </div>
+            <div className="mac-body">{children}</div>
+            {footer && <div className="win-footer">{footer}</div>}
+          </div>
+        </div>
+      );
+    }
+
+    /* ── Toggle ─────────────────────────────────────────────────────────── */
+    function Toggle({ on, onChange }) {
+      return <button className={`mac-toggle ${on ? 'on' : 'off'}`} onClick={() => onChange(!on)}></button>;
+    }
+
+    /* ── Health Check sheet ─────────────────────────────────────────────── */
+    function HealthSheet({ onClose }) {
+      const dotColor = { ok: '#30d158', err: '#ff3b30', slow: '#ff9f0a' };
+      return (
+        <MacWindow title="Health Check" onClose={onClose}
+          footer={<><button className="mac-btn default" onClick={onClose}>Close</button><button className="mac-btn primary">Test All Now</button></>}>
+          <div className="win-section-header" style={{ paddingBottom: 10 }}>
+            <span className="win-section-label">HTTP Reachability</span>
+            <span style={{ fontSize: 11, color: 'var(--text3)' }}>Last checked 2 min ago · auto-refresh 30s</span>
+          </div>
+          {HEALTH.map(h => (
+            <div className="hc-row" key={h.port}>
+              <div className="hc-dot" style={{ background: dotColor[h.status] }}></div>
+              <span className="hc-port">:{h.port}</span>
+              <span className="hc-name">{h.name}</span>
+              <span className={`hc-tag ${h.status}`}>{h.status === 'ok' ? 'OK' : h.status === 'err' ? 'Timeout' : 'Slow'}</span>
+              <span className="hc-code">{h.code || '—'}</span>
+              <span className="hc-lat">{h.lat ? `${h.lat}ms` : '—'}</span>
+            </div>
+          ))}
+        </MacWindow>
+      );
+    }
+
+    /* ── Activity Log sheet ─────────────────────────────────────────────── */
+    function ActivitySheet({ events, onClear, onClose }) {
+      const dotColor = { success: '#30d158', error: '#ff3b30', warning: '#ff9f0a' };
+      return (
+        <MacWindow title="Activity Log" onClose={onClose}
+          footer={<><button className="mac-btn default" onClick={onClear}>Clear History</button><button className="mac-btn default" onClick={onClose}>Done</button></>}>
+          {events.length === 0 ? (
+            <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text3)', fontSize: 13 }}>No activity recorded yet.</div>
+          ) : events.map(ev => (
+            <div className="tl-item" key={ev.id}>
+              <div className="tl-dot" style={{ background: dotColor[ev.type] || '#aeaeb2' }}></div>
+              <div style={{ flex: 1 }}>
+                <div className="tl-title">{ev.title}</div>
+                <div className="tl-body">{ev.body}</div>
+              </div>
+              <div className="tl-time">{ev.time}</div>
+            </div>
+          ))}
+        </MacWindow>
+      );
+    }
+
+    /* ── Per-server log data ──────────────────────────────────────────── */
+    const SERVER_LOGS = {
+      1: [
+        { cls:'ok',   t:14, msg:'[node] Server started on :3000' },
+        { cls:'',     t:13, msg:'[node] Listening on 0.0.0.0:3000' },
+        { cls:'',     t:12, msg:'GET  /api/health → 200 OK  (12ms)' },
+        { cls:'',     t:11, msg:'POST /api/auth/login → 200 OK  (34ms)' },
+        { cls:'',     t:10, msg:'GET  /api/users → 200 OK  (18ms)' },
+        { cls:'',     t:9,  msg:'POST /api/users → 201 Created  (45ms)' },
+        { cls:'warn', t:7,  msg:'WARN Memory usage above threshold — 124 MB / 128 MB limit' },
+        { cls:'',     t:6,  msg:'GET  /api/status → 200 OK  (9ms)' },
+        { cls:'',     t:5,  msg:'DELETE /api/sessions/4 → 204  (3ms)' },
+        { cls:'warn', t:4,  msg:'WARN Slow query detected — SELECT * FROM events took 842ms' },
+        { cls:'',     t:3,  msg:'GET  /api/users → 200 OK  (14ms)' },
+        { cls:'',     t:1,  msg:'GET  /api/health → 200 OK  (8ms)' },
+      ],
+      2: [
+        { cls:'ok',   t:10, msg:'VITE v5.2.0  ready in 342ms' },
+        { cls:'',     t:10, msg:'→  Local:   http://localhost:5173/' },
+        { cls:'',     t:10, msg:'→  Network: use --host to expose' },
+        { cls:'',     t:8,  msg:'[vite] hmr update /src/components/Header.tsx (x2)' },
+        { cls:'',     t:6,  msg:'[vite] hmr update /src/pages/Dashboard.tsx' },
+        { cls:'warn', t:5,  msg:'[vite] Could not resolve import "@/lib/utils" from "src/pages/Settings.tsx"' },
+        { cls:'',     t:4,  msg:'[vite] page reload src/index.css' },
+        { cls:'',     t:2,  msg:'[vite] hmr update /src/components/Sidebar.tsx' },
+        { cls:'',     t:1,  msg:'GET  / → 200 OK  (2ms)' },
+      ],
+      3: [
+        { cls:'ok',   t:22, msg:'[python3] Starting api-server on :8080' },
+        { cls:'',     t:22, msg:'[python3] Loading database — sqlite:///data.db' },
+        { cls:'err',  t:20, msg:'Traceback (most recent call last):' },
+        { cls:'err',  t:20, msg:'  File "app.py", line 42, in handle_request' },
+        { cls:'err',  t:20, msg:'    result = db.query(sql)' },
+        { cls:'err',  t:20, msg:'  File "/usr/lib/python3/sqlalchemy/engine.py", line 91' },
+        { cls:'err',  t:20, msg:'    raise OperationalError("no such table: sessions")' },
+        { cls:'err',  t:20, msg:'sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: sessions' },
+        { cls:'err',  t:20, msg:'[python3] Unhandled exception — exiting with code 1' },
+      ],
+      4: [
+        { cls:'ok',   t:8,  msg:'[bun] docs-site started on :4321' },
+        { cls:'',     t:8,  msg:'[bun] → http://localhost:4321/' },
+        { cls:'',     t:7,  msg:'[bun] build: 142 files built in 1.24s' },
+        { cls:'',     t:6,  msg:'GET  / → 200 OK  (2ms)' },
+        { cls:'',     t:5,  msg:'GET  /docs/quickstart → 200 OK  (4ms)' },
+        { cls:'',     t:4,  msg:'GET  /docs/api-reference → 200 OK  (3ms)' },
+        { cls:'warn', t:3,  msg:'WARN Missing alt text on 3 images in /docs/deploy.md' },
+        { cls:'',     t:2,  msg:'GET  /blog/release-2.0 → 200 OK  (2ms)' },
+        { cls:'',     t:1,  msg:'[bun] file watcher: 0 changes' },
+      ],
+    };
+
+    /* ── Server Logs sheet ──────────────────────────────────────────────── */
+    function LogsSheet({ server, onClose }) {
+      const [filter, setFilter] = useState('all');
+      const [copied, setCopied] = useState(false);
+      const [copiedAI, setCopiedAI] = useState(false);
+      const termRef = useRef(null);
+
+      const ts = (n) => { const d = new Date(Date.now() - n * 60000); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`; };
+      const allLines = SERVER_LOGS[server.id] || [];
+      const filtered = filter === 'all' ? allLines
+        : filter === 'errors' ? allLines.filter(l => l.cls === 'err')
+        : allLines.filter(l => l.cls === 'warn' || l.cls === 'err');
+
+      const errCount  = allLines.filter(l => l.cls === 'err').length;
+      const warnCount = allLines.filter(l => l.cls === 'warn').length;
+
+      const doCopy = () => {
+        const text = filtered.map(l => `[${ts(l.t)}] ${l.msg}`).join('\n');
+        navigator.clipboard.writeText(text).catch(() => {});
+        setCopied(true); setTimeout(() => setCopied(false), 2000);
+      };
+
+      const doCopyAI = () => {
+        const errLines = allLines.filter(l => l.cls === 'err' || l.cls === 'warn');
+        const text = [
+          `=== PortKeeper Log Export ===`,
+          `Server:  ${server.name}`,
+          `Process: ${server.process}  (PID ${server.pid ?? 'n/a'})`,
+          `Port:    :${server.port}`,
+          `Memory:  ${server.memory}   Uptime: ${server.uptime}`,
+          `Binary:  ${server.binary}`,
+          ``,
+          `--- stdout / stderr (last ${allLines.length} lines) ---`,
+          ...allLines.map(l => `[${ts(l.t)}] ${l.msg}`),
+          ``,
+          errLines.length ? `--- Errors & warnings (${errLines.length} lines) ---` : null,
+          ...errLines.map(l => `[${ts(l.t)}] ${l.msg}`),
+        ].filter(x => x !== null).join('\n');
+        navigator.clipboard.writeText(text).catch(() => {});
+        setCopiedAI(true); setTimeout(() => setCopiedAI(false), 2500);
+      };
+
+      const filterBtnStyle = (k) => ({
+        padding: '3px 10px', borderRadius: 5, border: 'none', cursor: 'pointer',
+        fontSize: 12, fontFamily: 'var(--font)', fontWeight: filter === k ? 600 : 400,
+        background: filter === k ? 'var(--blue)' : 'var(--card-bg)',
+        color: filter === k ? '#fff' : 'var(--text2)',
+        transition: 'all 140ms',
+      });
+
+      return (
+        <MacWindow title={`Logs — ${server.name}  :${server.port}`} onClose={onClose} width={620}
+          footer={<>
+            <button className="mac-btn default" onClick={doCopy} style={{ minWidth: 80 }}>
+              {copied ? '✓ Copied!' : <><IcoCopy size={13} style={{marginRight:5}} />Copy</>}
+            </button>
+            <button className="mac-btn primary" onClick={doCopyAI} style={{ minWidth: 140, background: copiedAI ? '#30d158' : undefined }}>
+              {copiedAI ? '✓ Copied for AI!' : <><IcoBot size={13} style={{marginRight:6}} />Copy for AI agent</>}
+            </button>
+            <button className="mac-btn default"><IcoTerm size={13} style={{marginRight:5}} />Terminal</button>
+            <button className="mac-btn default" onClick={onClose}>Done</button>
+          </>}>
+          {/* Filter bar */}
+          <div style={{ display:'flex', alignItems:'center', gap:4, padding:'8px 14px', borderBottom:'1px solid var(--sep)', background:'var(--win-bg)' }}>
+            <button style={filterBtnStyle('all')}   onClick={() => setFilter('all')}>All  <span style={{ opacity:.6, fontWeight:400 }}>({allLines.length})</span></button>
+            <button style={filterBtnStyle('errors')} onClick={() => setFilter('errors')} disabled={!errCount}>
+              Errors {errCount ? <span style={{ opacity:.6, fontWeight:400 }}>({errCount})</span> : ''}
+            </button>
+            <button style={filterBtnStyle('warn')}  onClick={() => setFilter('warn')}  disabled={!warnCount}>
+              Warnings {warnCount ? <span style={{ opacity:.6, fontWeight:400 }}>({warnCount})</span> : ''}
+            </button>
+            <div style={{ flex:1 }}></div>
+            <span style={{ fontSize:11, color:'var(--text3)' }}>{filtered.length} line{filtered.length !== 1 ? 's' : ''}</span>
+          </div>
+          {/* Terminal */}
+          <div className="log-term" ref={termRef} style={{ minHeight: 240 }}>
+            {filtered.length === 0
+              ? <span style={{ color:'#858585' }}>No {filter} entries in log.</span>
+              : filtered.map((l, i) => (
+                  <div key={i} className={`log-l ${l.cls}`}>
+                    <span className="log-ts">[{ts(l.t)}]</span>{l.msg}
+                  </div>
+                ))
+            }
+          </div>
+          {/* AI hint */}
+          <div style={{ padding:'8px 14px', fontSize:11, color:'var(--text3)', borderTop:'1px solid var(--sep)', background:'var(--win-bg)', lineHeight:1.5 }}>
+            💡 <strong style={{ color:'var(--text2)' }}>Copy for AI agent</strong> includes server context (process, PID, binary, memory) + full log — ready to paste into Claude or ChatGPT.
+          </div>
+        </MacWindow>
+      );
+    }
+
+    /* ── Settings sheet ─────────────────────────────────────────────────── */
+    function SettingsSheet({ onClose }) {
+      const [dirs, setDirs] = useState(['~/projects', '~/opensrc']);
+      const [notify, setNotify] = useState(true);
+      const [login, setLogin] = useState(false);
+      const [badge, setBadge] = useState(true);
+      const [polling, setPolling] = useState('5');
+      const [hcInt, setHcInt] = useState('30');
+      const [ignored, setIgnored] = useState('443, 80');
+      return (
+        <MacWindow title="PortKeeper Settings" onClose={onClose}
+          footer={<><button className="mac-btn default" onClick={onClose}>Cancel</button><button className="mac-btn primary" onClick={onClose}>Save</button></>}>
+          <div className="settings-section">
+            <div className="settings-label">Directories to scan</div>
+            <div className="settings-dir-list">
+              {dirs.map((d, i) => (
+                <div className="settings-dir" key={i}>
+                  <span className="settings-dir-name">{d}</span>
+                  <button className="settings-dir-del" onClick={() => setDirs(p => p.filter((_,j) => j !== i))}>×</button>
+                </div>
+              ))}
+            </div>
+            <button className="settings-add" onClick={() => setDirs(p => [...p, '~/newdir'])}>
+              <IcoPlus size={12} /> Add directory
+            </button>
+          </div>
+          <div className="settings-section">
+            <div className="settings-label">Polling</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+              <div>
+                <div style={{ fontSize:12, color:'var(--text2)', marginBottom:5 }}>Monitor interval (s)</div>
+                <input className="settings-input" type="number" value={polling} min="1" max="60" onChange={e => setPolling(e.target.value)} />
+              </div>
+              <div>
+                <div style={{ fontSize:12, color:'var(--text2)', marginBottom:5 }}>Health check interval (s)</div>
+                <input className="settings-input" type="number" value={hcInt} min="10" max="300" onChange={e => setHcInt(e.target.value)} />
+              </div>
+            </div>
+          </div>
+          <div className="settings-section">
+            <div className="settings-label">Ignored ports</div>
+            <input className="settings-input" type="text" value={ignored} onChange={e => setIgnored(e.target.value)} placeholder="443, 80" />
+            <div style={{ fontSize:11, color:'var(--text3)', marginTop:5 }}>Comma-separated — system ports won't appear in the list.</div>
+          </div>
+          <div className="settings-section" style={{ borderBottom:'none' }}>
+            <div className="settings-label">Preferences</div>
+            <div className="toggle-row">
+              <div><div className="toggle-label">Notify when server goes down</div><div className="toggle-desc">System alert on crash or timeout</div></div>
+              <Toggle on={notify} onChange={setNotify} />
+            </div>
+            <div className="toggle-row">
+              <div><div className="toggle-label">Launch at login</div><div className="toggle-desc">Start PortKeeper with macOS</div></div>
+              <Toggle on={login} onChange={setLogin} />
+            </div>
+            <div className="toggle-row">
+              <div><div className="toggle-label">Show badge count</div><div className="toggle-desc">Active server count on menubar icon</div></div>
+              <Toggle on={badge} onChange={setBadge} />
+            </div>
+          </div>
+        </MacWindow>
+      );
+    }
+
+    /* ── Main App ───────────────────────────────────────────────────────── */
+    function App() {
+      const [dark, setDark] = useState(() => { try { return localStorage.getItem('pk-dark') === '1'; } catch { return false; } });
+      const [popOpen, setPopOpen] = useState(false);
+      const [sheet, setSheet] = useState(null); // 'health' | 'activity' | 'settings' | 'logs'
+      const [servers, setServers] = useState(INIT);
+      const [activity, setActivity] = useState(ACTIVITY);
+      const [expanded, setExpanded] = useState(null);
+      const [killTarget, setKillTarget] = useState(null);
+      const [logsServer, setLogsServer] = useState(null);
+      const [notif, setNotif] = useState(null);
+
+      useEffect(() => {
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        try { localStorage.setItem('pk-dark', dark ? '1' : '0'); } catch {}
+      }, [dark]);
+
+      // Auto-show notification after 4s
+      useEffect(() => {
+        const t = setTimeout(() => setNotif({ title: 'Port 8080 crashed', body: 'python3 (api-server) stopped after 12m — exit code 1' }), 4000);
+        return () => clearTimeout(t);
+      }, []);
+
+      const activeCount = servers.filter(s => s.status === 'online').length;
+      const projects = [...new Set(servers.map(s => s.project))];
+      const grouped = projects.map(p => ({ project: p, items: servers.filter(s => s.project === p) }));
+
+      const doKill = () => {
+        const s = killTarget;
+        setKillTarget(null);
+        setServers(p => p.map(x => x.id === s.id ? { ...x, status: 'offline', uptime: '—', pid: null } : x));
+        const now = new Date();
+        setActivity(p => [{ id: Date.now(), time: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`, type:'error', title:`${s.process} :${s.port} killed`, body:`${s.name} was stopped manually` }, ...p]);
+      };
+
+      const openSheet = (s) => { setSheet(s); setPopOpen(false); };
+
+      // Click outside popover to close
+      const popRef = useRef(null);
+      useEffect(() => {
+        if (!popOpen) return;
+        const fn = (e) => { if (popRef.current && !popRef.current.contains(e.target)) setPopOpen(false); };
+        setTimeout(() => document.addEventListener('mousedown', fn), 10);
+        return () => document.removeEventListener('mousedown', fn);
+      }, [popOpen]);
+
+      return (
+        <div className="desktop">
+          {/* ── Menu bar ── */}
+          <div className="menubar">
+            <div className="mb-left">
+              <span className="mb-apple">&#63743;</span>
+              <span className="mb-app">Finder</span>
+              {['File','Edit','View','Go','Window','Help'].map(m => <span className="mb-menu" key={m}>{m}</span>)}
+            </div>
+            <div className="mb-right">
+              <span className="mb-sys">Mon Jun 9</span>
+              <span className="mb-sys">9:41 AM</span>
+              <span className="mb-sys" style={{ cursor:'pointer' }} onClick={() => setDark(d => !d)}>{dark ? '☀' : '☾'}</span>
+              <span className="mb-sys">▲ ◈ ⌘</span>
+
+              {/* PortKeeper icon */}
+              <div ref={popRef} style={{ position:'relative' }}>
+                <div className={`mb-pk ${popOpen ? 'open' : ''}`} onClick={() => setPopOpen(o => !o)}>
+                  <IcoZap size={13} style={{ color:'rgba(255,255,255,0.88)' }} />
+                  {activeCount > 0 && <div className="pk-badge">{activeCount}</div>}
+                </div>
+
+                {/* ── Popover ── */}
+                {popOpen && (
+                  <div className="popover-positioner" style={{ right: 0 }}>
+                    <div className="popover">
+                      {/* Header */}
+                      <div className="pop-header">
+                        <div>
+                          <div className="pop-title">PortKeeper</div>
+                          <div className="pop-subtitle">{activeCount} server{activeCount !== 1 ? 's' : ''} active</div>
+                        </div>
+                        <button className="pop-refresh" title="Refresh">
+                          <IcoRefresh size={13} />
+                        </button>
+                      </div>
+
+                      {/* Server list */}
+                      <div className="servers-list">
+                        {servers.map(s => (
+                          <div key={s.id}>
+                            <div className="server-row" onClick={() => setExpanded(p => p === s.id ? null : s.id)}>
+                              <div className={`srv-dot ${s.status}`}></div>
+                              <div className="srv-info">
+                                <div className="srv-top">
+                                  <span className="srv-port"
+                                    onClick={(e) => { e.stopPropagation(); if (s.status === 'online') { setLogsServer(s); setPopOpen(false); } }}
+                                    style={{ textDecoration: s.status === 'online' ? 'underline' : 'none', textDecorationStyle:'dotted', cursor: s.status === 'online' ? 'pointer' : 'default' }}>
+                                    :{s.port}
+                                  </span>
+                                  <span className="srv-process">{s.process}</span>
+                                </div>
+                                <div className="srv-name">{s.name}</div>
+                                <div className="srv-uptime">{s.uptime}</div>
+                                {expanded === s.id && (
+                                  <div className="srv-expanded">
+                                    <div><div className="srv-detail-key">PID</div><div className="srv-detail-val">{s.pid ?? '—'}</div></div>
+                                    <div><div className="srv-detail-key">Memory</div><div className="srv-detail-val">{s.memory}</div></div>
+                                    <div style={{ gridColumn:'1/-1' }}><div className="srv-detail-key">Binary</div><div className="srv-detail-val">{s.binary}</div></div>
+                                  </div>
+                                )}
+                              </div>
+                              <div style={{ display:'flex', gap:4, flexShrink:0, alignItems:'flex-start', marginTop:2 }}>
+                                <button className="srv-kill" style={{ background:'var(--card-bg)', color:'var(--text2)' }}
+                                  onClick={(e) => { e.stopPropagation(); setLogsServer(s); setPopOpen(false); }} title="View logs">
+                                  <IcoLogs size={10} />
+                                </button>
+                                {s.status === 'online' && (
+                                  <button className="srv-kill" onClick={(e) => { e.stopPropagation(); setKillTarget(s); setPopOpen(false); }} title="Kill process">
+                                    <IcoX size={10} />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Projects */}
+                      <div className="pop-section">
+                        <div className="pop-label">Projects</div>
+                        {grouped.map(g => (
+                          <div className="proj-row" key={g.project}>
+                            <span className="proj-icon">📁</span>
+                            <span className="proj-name">{g.project}</span>
+                            <span className="proj-count">· {g.items.filter(x => x.status==='online').length} active</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="pop-footer">
+                        <button className="pop-btn" onClick={() => openSheet('health')}>
+                          <IcoHeart size={14} style={{ color:'var(--text2)' }} /> Health Check
+                        </button>
+                        <button className="pop-btn" onClick={() => openSheet('activity')}>
+                          <IcoActivity size={14} style={{ color:'var(--text2)' }} /> Activity Log
+                        </button>
+                        <button className="pop-btn" onClick={() => openSheet('settings')}>
+                          <IcoSettings size={14} style={{ color:'var(--text2)' }} /> Settings
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Desktop area ── */}
+          <div className="desktop-area"></div>
+
+          {/* ── Sheets ── */}
+          {sheet === 'health'   && <HealthSheet   onClose={() => setSheet(null)} />}
+          {sheet === 'activity' && <ActivitySheet events={activity} onClear={() => setActivity([])} onClose={() => setSheet(null)} />}
+          {sheet === 'settings' && <SettingsSheet onClose={() => setSheet(null)} />}
+          {logsServer           && <LogsSheet     server={logsServer} onClose={() => setLogsServer(null)} />}
+
+          {/* ── Kill confirm ── */}
+          {killTarget && (
+            <div className="win-overlay" onClick={() => setKillTarget(null)}>
+              <div className="confirm-box" onClick={e => e.stopPropagation()}>
+                <div className="confirm-title">Kill {killTarget.process} on :{killTarget.port}?</div>
+                <div className="confirm-body">{killTarget.name} (PID {killTarget.pid}) will receive SIGTERM and be removed from the list.</div>
+                <div className="confirm-btns">
+                  <button className="mac-btn default" onClick={() => setKillTarget(null)}>Cancel</button>
+                  <button className="mac-btn danger"  onClick={doKill}>Kill</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── macOS Notification ── */}
+          {notif && (
+            <div className="notif" onClick={() => { setNotif(null); setPopOpen(true); }}>
+              <div className="notif-app-icon">⚡</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8 }}>
+                  <div className="notif-title">{notif.title}</div>
+                  <span className="notif-time">now</span>
+                </div>
+                <div className="notif-body">{notif.body}</div>
+              </div>
+              <button style={{ background:'none', border:'none', color:'var(--text3)', cursor:'pointer', fontSize:14, lineHeight:1, alignSelf:'flex-start', padding:0 }} onClick={(e) => { e.stopPropagation(); setNotif(null); }}>×</button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  })();
+  </script>
+</body>
+</html>

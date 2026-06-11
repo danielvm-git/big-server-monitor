@@ -1,67 +1,67 @@
-project: portkeeper
-version: 1.0.0
-target: "2026-07-01"
+project: bigservermonitor
+version: 2.0.0
+target: "2026-07-15"
 
 description: >
-  macOS menubar app for monitoring local development servers.
-  Go ECC kernel (BigBase architecture) + Wails v2 + React 19 frontend.
-  Visual style: BigBase Design System (same family as Big DockLocker).
+  Full rewrite of PortKeeper as BigServerMonitor: native Swift 6 / SwiftUI
+  macOS menubar app (MenuBarExtra, LSUIElement). Replaces the Go ECC kernel +
+  Wails v2 + React 19 stack in place. Branding and UI follow the Claude Design
+  handoff in specs/design-handoff/ (indigo mark, BigServerMonitor wordmark,
+  native macOS popover/sheet design from PortKeeper.html).
+
+decisions:
+  - "Idiomatic Swift: actors + AsyncStream + @Observable; no ECC kernel port"
+  - "Data fresh-start at ~/Library/Application Support/BigServerMonitor/"
+  - "XcodeGen project.yml; App Sandbox OFF (lsof + kill required)"
+  - "GRDB for SQLite; SMAppService for launch-at-login; UserNotifications"
+  - "Structured JSON file logging preserved (CLAUDE.md observability contract)"
 
 epics:
   - id: e01
-    name: portkeeper-v1
-    description: "Full working macOS menubar app — all 7 screens, real data"
-    slices:
-      - "001-architecture"
-      - "002-process-monitor"
-      - "003-health-check"
-      - "004-activity-log"
-      - "005-log-capture"
-      - "006-notifications"
-      - "007-settings"
-      - "008-ui-menubar"
-    status: planning
+    name: scaffold-and-brand
+    description: "XcodeGen app target, MenuBarExtra skeleton, logo/app icon/wordmark assets"
+    status: pending
+  - id: e02
+    name: process-monitor-core
+    description: "lsof polling actor, diff events, project detection, env redaction, kill"
+    status: pending
+  - id: e03
+    name: popover-ui
+    description: "360pt popover: header, server rows w/ expand, projects, footer, kill confirm"
+    status: pending
+  - id: e04
+    name: health-activity-logs
+    description: "HealthChecker + sheet, ActivityStore (GRDB) + sheet, LogCapture + LogsSheet w/ Copy for AI"
+    status: pending
+  - id: e05
+    name: settings-notifications
+    description: "Settings sheet + JSON persistence, launch-at-login, crash notifications w/ rate limit"
+    status: pending
+  - id: e06
+    name: cutover
+    description: "Delete Go/React/Wails, rewrite CLAUDE.md/CONVENTIONS/README, .gitignore, setup.sh"
+    status: pending
 
 milestones:
-  - name: "M1: Core monitoring"
-    slices: ["002-process-monitor", "007-settings"]
-    description: "App lists real running processes from OS"
-    verify: "menubar badge shows correct count of listening ports"
-
-  - name: "M2: Full UI"
-    slices: ["008-ui-menubar"]
-    description: "All screens interactive with live data"
-    verify: "all sheets open, server rows expand, kill dialog works"
-
-  - name: "M3: Health + Logs"
-    slices: ["003-health-check", "005-log-capture"]
-    description: "HTTP probing and log capture working"
-    verify: "health check shows latency; Copy for AI produces correct block"
-
-  - name: "M4: History + Alerts"
-    slices: ["004-activity-log", "006-notifications"]
-    description: "Activity timeline persisted; crash notification delivered"
-    verify: "kill process → notification banner + activity log entry"
-
-  - name: "M5: Ship"
-    description: "Signed .app bundle, launch at login, App Store or direct distribution"
-    verify: "wails build produces signed .app; codesign --verify passes"
+  - name: "M1: It lives in the menubar"
+    epics: [e01]
+    verify: "xcodebuild succeeds; app shows brand icon in menubar with popover skeleton"
+  - name: "M2: Real monitoring"
+    epics: [e02, e03]
+    verify: "python3 -m http.server 3000 appears in popover within 5s; kill works with confirm"
+  - name: "M3: Feature parity"
+    epics: [e04, e05]
+    verify: "health latency shown; activity persisted across relaunch; Copy for AI on pasteboard; settings persist"
+  - name: "M4: Cutover shipped"
+    epics: [e06]
+    verify: "no .go/.tsx files remain; swift test green; PR open"
 
 stack:
-  language: go
-  version: "1.22+"
-  ui_framework: wails-v2
-  frontend: react-19 + vite-8
-  db: sqlite
-  test: vitest-4 + playwright-1.60
-  design_system: bigbase-design-system
-  icon_set: lucide-react
-
-opensrc_packages_used:
-  - react@19.2.7
-  - vite@8.0.16
-  - react-router-dom@7.16.0
-  - vitest@4.1.8
-  - "@playwright/test@1.60.0"
-  - apple/swift-nio (reference only — macOS API patterns)
-  - github.com/danielvm-git/bigbase (architecture reference + design system)
+  language: swift
+  version: "6.x (strict concurrency)"
+  ui_framework: swiftui-menubarextra
+  min_macos: "14.0"
+  db: sqlite via GRDB
+  test: swift-testing
+  project_gen: xcodegen
+  design: specs/design-handoff (BigServerMonitor logo + PortKeeper.html UI prototype)

@@ -1,66 +1,28 @@
 session:
-  project: portkeeper
-  started: "2026-06-09"
+  project: bigservermonitor
+  started: "2026-06-11"
   status: building
 
 active:
-  epic: e01-portkeeper-v1
-  story: null
+  release: 2.0.0
+  flow: build_epic
+  epic: e01-scaffold-and-brand
+  story: e01s01
   phase: BUILD
+  branch: feat/swift6-rewrite
 
-completed_workflows:
-  - name: portkeeper-bootstrap
-    status: COMPLETE
-    when: "2026-06-09T22:45:00Z"
-    output: |
-      ✓ Git repo initialized, feat/portkeeper-v1 branch created
-      ✓ Wails v2 installed (v2.12.0)
-      ✓ Wails project scaffolded (React 19 + Vite 8)
-      ✓ BigBase ECC kernel copied and tested (8 tests pass)
-      ✓ 6 component directories created
-      ✓ CLAUDE.md and CONVENTIONS.md written
-      ✓ go build ./kernel/... ✓ (gate passed)
+metrics:
+  story_start: "2026-06-11T00:00:00Z"
 
-in_progress_workflows:
-  - name: portkeeper-backend
-    status: RUNNING
-    started: "2026-06-09T22:52:00Z"
-    agents: 6
-    details: |
-      Parallel TDD implementation of 6 components:
-      - processmonitor (port enumeration, process detection)
-      - healthcheck (HTTP + protocol-aware DB probes)
-      - activitylog (SQLite timeline persistence)
-      - logcapture (ring buffer + "Copy for AI" export)
-      - notifications (macOS UserNotifications)
-      - settings (config persistence + launch-at-login)
-
-      Expected completion: ~10-15 minutes
-      Next gate: go test ./components/... (all green)
-
-pending_workflows:
-  - name: portkeeper-integration
-    status: QUEUED
-    details: |
-      C1: Wire main.go + Wails bindings (1 agent, sequential)
-      C2: Frontend UI in parallel (3 agents) — popover, sheets, settings+theme
-      C3: Final audit + ship (1 agent, sequential)
+history:
+  - release: 1.0.0
+    note: >
+      PortKeeper v1 (Go ECC kernel + Wails v2 + React 19) completed 2026-06-09/10:
+      all 6 components, 150+ tests, Playwright e2e, structured slog logging.
+      Superseded by the 2.0.0 Swift 6 rewrite (see release-plan.yaml).
 
 handoff: >
-  **PAUSE CHECKPOINT**
-
-  Workflow A (Bootstrap) completed successfully. All kernel infrastructure in place.
-  Workflow B (Backend Components) is currently running in background (6 parallel Haiku agents).
-
-  TO CONTINUE IN ANOTHER SESSION:
-  1. Wait for Workflow B to complete (monitor via `/workflows` command)
-  2. Verify gate: go test ./components/... (expect all green)
-  3. Launch Workflow C (portkeeper-integration) with the same Haiku model
-
-  WORKFLOW SCRIPTS SAVED AT:
-  - Bootstrap: /Users/danielvm/.claude/projects/.../workflows/scripts/portkeeper-bootstrap-wf_7762463d-c5b.js
-  - Backend: /Users/danielvm/.claude/projects/.../workflows/scripts/portkeeper-backend-wf_261f2c7b-185.js
-
-  EXECUTION PLAN: /Users/danielvm/.claude/plans/plan-how-to-execute-kind-metcalfe.md
-
-  All specs at: /Users/danielvm/Developer/big-server-monitor/specs/
+  Swift 6 rewrite in progress on feat/swift6-rewrite. Plan approved at
+  ~/.claude/plans/continue-cuddly-origami.md. Design handoff bundle preserved
+  at specs/design-handoff/. Epic capsules at specs/epics/e0[1-6]-*.yaml.
+  Next: e01 scaffold (xcodegen project, MenuBarExtra skeleton, brand assets).

@@ -1,0 +1,364 @@
+/* ============================================================
+   BigBase Design System — Colors & Type
+   Self-hosted BaaS control panel. Appwrite-inspired clarity,
+   BigBase indigo identity. Source of truth for all tokens.
+   Fonts: Inter (UI) + Fira Code (code/SQL) via Google Fonts CDN.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&family=Fira+Code:wght@400;500;600&display=swap');
+
+:root {
+  /* ── Neutral gray scale (0–900) ──────────────────────────── */
+  --neutral-0:   rgb(255, 255, 255);
+  --neutral-25:  rgb(250, 250, 251);
+  --neutral-40:  rgb(244, 244, 247);
+  --neutral-50:  rgb(237, 237, 240);
+  --neutral-100: rgb(228, 228, 231);
+  --neutral-200: rgb(216, 216, 219);
+  --neutral-250: rgb(195, 195, 198);
+  --neutral-300: rgb(173, 173, 176);
+  --neutral-400: rgb(151, 151, 155);
+  --neutral-500: rgb(129, 129, 134);
+  --neutral-600: rgb(108, 108, 113);
+  --neutral-700: rgb(86, 86, 92);
+  --neutral-750: rgb(65, 65, 70);
+  --neutral-800: rgb(45, 45, 49);
+  --neutral-850: rgb(29, 29, 33);
+  --neutral-900: rgb(25, 25, 28);
+
+  /* ── Brand accent — indigo (BigBase identity) ────────────── */
+  --brand-50:  rgb(238, 236, 252);
+  --brand-100: rgb(224, 221, 250);
+  --brand-500: rgb(79, 70, 229);   /* #4F46E5 — primary */
+  --brand-600: rgb(67, 56, 202);   /* #4338CA — hover   */
+  --brand-700: rgb(55, 48, 163);   /* #3730A3 — active  */
+  --brand-tint: rgba(79, 70, 229, 0.10); /* subtle accent bg */
+
+  /* ── Semantic status colors ──────────────────────────────── */
+  --success:    rgb(16, 185, 129);
+  --success-bg: rgba(16, 185, 129, 0.12);
+  --success-fg: rgb(6, 95, 70);
+  --warning:    rgb(245, 158, 11);
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --warning-fg: rgb(146, 64, 14);
+  --error:      rgb(239, 68, 68);
+  --error-bg:   rgba(239, 68, 68, 0.08);
+  --error-fg:   rgb(153, 27, 27);
+  --info:       rgb(59, 130, 246);
+  --info-bg:    rgba(59, 130, 246, 0.10);
+  --info-fg:    rgb(30, 64, 175);
+
+  /* ── Background semantic roles (light) ───────────────────── */
+  --bg-default:           var(--neutral-25);
+  --bg-surface:           var(--neutral-0);
+  --bg-surface-hover:     var(--neutral-25);
+  --bg-surface-secondary: var(--neutral-40);
+  --bg-subtle:            var(--neutral-40);
+  --bg-accent:            var(--brand-500);
+  --bg-accent-hover:      var(--brand-600);
+  --bg-accent-active:     var(--brand-700);
+
+  /* ── Foreground semantic roles ───────────────────────────── */
+  --fg-primary:   var(--neutral-800);
+  --fg-secondary: var(--neutral-600);
+  --fg-tertiary:  var(--neutral-400);
+  --fg-accent:    var(--brand-500);
+  --fg-on-accent: var(--neutral-0);
+
+  /* ── Border semantic roles ───────────────────────────────── */
+  --border-default: var(--neutral-100);
+  --border-strong:  var(--neutral-200);
+  --border-focus:   var(--neutral-300);
+  --border-accent:  var(--brand-500);
+  --border-error:   var(--error);
+
+  /* ── Overlays ────────────────────────────────────────────── */
+  --overlay-hover:   rgba(25, 25, 28, 0.04);
+  --overlay-pressed: rgba(25, 25, 28, 0.06);
+  --overlay-scrim:   rgba(25, 25, 28, 0.55);
+
+  /* ── Typography families ─────────────────────────────────── */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Fira Code', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+
+  /* ── Type scale (px) ─────────────────────────────────────── */
+  --text-xs: 12px;
+  --text-s:  14px;
+  --text-m:  16px;
+  --text-l:  20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 40px;
+
+  /* ── Spacing (4px base) ──────────────────────────────────── */
+  --space-0: 0;     --space-1: 2px;   --space-2: 4px;
+  --space-3: 6px;   --space-4: 8px;   --space-5: 10px;
+  --space-6: 12px;  --space-8: 16px;  --space-10: 20px;
+  --space-12: 24px; --space-16: 32px; --space-20: 40px;
+  --space-24: 48px; --space-32: 64px;
+
+  /* ── Border radius ───────────────────────────────────────── */
+  --radius-xs:   4px;
+  --radius-s:    8px;
+  --radius-m:    12px;
+  --radius-l:    16px;
+  --radius-full: 9999px;
+
+  /* ── Motion ──────────────────────────────────────────────── */
+  --duration-fast:     150ms;
+  --duration-short:    160ms;
+  --duration-medium:   200ms;
+  --duration-extended: 250ms;
+  --duration-slow:     300ms;
+  --ease-standard:   ease;
+  --ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-in-out:     ease-in-out;
+  --ease-out:        ease-out;
+
+  /* ── Elevation / shadow ──────────────────────────────────── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-s:  0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-m:  0 4px 6px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-l:  0 10px 15px rgba(0, 0, 0, 0.06), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.10), 0 8px 16px rgba(0, 0, 0, 0.05);
+  --focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.18);
+}
+
+/* ── Dark mode (class-based toggle: <html data-theme="dark">) ─ */
+[data-theme="dark"] {
+  --bg-default:           var(--neutral-900);
+  --bg-surface:           var(--neutral-850);
+  --bg-surface-hover:     var(--neutral-800);
+  --bg-surface-secondary: var(--neutral-800);
+  --bg-subtle:            var(--neutral-800);
+
+  --fg-primary:   var(--neutral-25);
+  --fg-secondary: var(--neutral-300);
+  --fg-tertiary:  var(--neutral-500);
+
+  --border-default: var(--neutral-750);
+  --border-strong:  var(--neutral-700);
+  --border-focus:   var(--neutral-600);
+
+  /* default indigo accent text is too dark on near-black surfaces (2.67:1) —
+     remap to a lightened indigo (#807AEC, 4.73:1 on --bg-surface). */
+  --fg-accent: rgb(128, 122, 236);
+
+  --success-fg: rgb(110, 231, 183);
+  --warning-fg: rgb(252, 211, 77);
+  --error-fg:   rgb(252, 165, 165);
+  --info-fg:    rgb(147, 197, 253);
+
+  --overlay-hover:   rgba(255, 255, 255, 0.05);
+  --overlay-pressed: rgba(255, 255, 255, 0.08);
+  --overlay-scrim:   rgba(0, 0, 0, 0.7);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-s:  0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-m:  0 4px 6px rgba(0, 0, 0, 0.35);
+  --shadow-l:  0 10px 15px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================================
+   MONTH THEMES — accent swap, WCAG 2.1 AA verified
+   ------------------------------------------------------------
+   Apply with <html data-accent="<month>"> (combine with
+   data-theme="dark" for dark mode). Each block remaps only the
+   brand ramp + accent roles; every other role token cascades
+   unchanged, so dark mode and all components keep working.
+
+   • --brand-500 = the month seed (button fills, decorative).
+   • --brand-600 / --700 = darkened seed for hover / active fills.
+   • --fg-accent = a DARKENED, AA-safe text shade. Verified
+     ≥4.5:1 on white, on --bg-default, and on the --brand-tint
+     active-nav background. Dark mode remaps it to a LIGHTENED
+     shade (≥4.5:1 on near-black surfaces) below.
+   • --fg-on-accent = text colour on a filled button. Flips to
+     near-black for light/pastel seeds (peach, lavender, yellow,
+     silver, green, teal, orange, pink) so it stays ≥4.5:1.
+   • --focus-ring tracks the accent at 30% so it reads on light
+     seeds too.
+   Full contrast table lives in SPECS.md.
+   ============================================================ */
+[data-accent="january"] {  /* Teal */
+  --brand-500: rgb(13, 148, 136);  --brand-600: rgb(11, 126, 116);  --brand-700: rgb(9, 107, 98);
+  --brand-tint: rgba(13, 148, 136, 0.12);
+  --bg-accent: rgb(13, 148, 136);  --bg-accent-hover: rgb(11, 126, 116);  --bg-accent-active: rgb(9, 107, 98);
+  --border-accent: rgb(13, 148, 136);
+  --fg-accent: rgb(11, 120, 110);  --fg-on-accent: rgb(25, 25, 28);
+  --focus-ring: 0 0 0 3px rgba(13, 148, 136, 0.30);
+}
+[data-accent="february"] {  /* Orange */
+  --brand-500: rgb(234, 88, 12);  --brand-600: rgb(199, 75, 10);  --brand-700: rgb(168, 63, 9);
+  --brand-tint: rgba(234, 88, 12, 0.12);
+  --bg-accent: rgb(234, 88, 12);  --bg-accent-hover: rgb(199, 75, 10);  --bg-accent-active: rgb(168, 63, 9);
+  --border-accent: rgb(234, 88, 12);
+  --fg-accent: rgb(185, 70, 9);  --fg-on-accent: rgb(25, 25, 28);
+  --focus-ring: 0 0 0 3px rgba(234, 88, 12, 0.30);
+}
+[data-accent="march"] {  /* Purple */
+  --brand-500: rgb(124, 58, 237);  --brand-600: rgb(105, 49, 201);  --brand-700: rgb(89, 42, 171);
+  --brand-tint: rgba(124, 58, 237, 0.12);
+  --bg-accent: rgb(124, 58, 237);  --bg-accent-hover: rgb(105, 49, 201);  --bg-accent-active: rgb(89, 42, 171);
+  --border-accent: rgb(124, 58, 237);
+  --fg-accent: rgb(124, 58, 237);  --fg-on-accent: rgb(255, 255, 255);
+  --focus-ring: 0 0 0 3px rgba(124, 58, 237, 0.30);
+}
+[data-accent="april"] {  /* Green */
+  --brand-500: rgb(22, 163, 74);  --brand-600: rgb(19, 139, 63);  --brand-700: rgb(16, 117, 53);
+  --brand-tint: rgba(22, 163, 74, 0.12);
+  --bg-accent: rgb(22, 163, 74);  --bg-accent-hover: rgb(19, 139, 63);  --bg-accent-active: rgb(16, 117, 53);
+  --border-accent: rgb(22, 163, 74);
+  --fg-accent: rgb(17, 124, 56);  --fg-on-accent: rgb(25, 25, 28);
+  --focus-ring: 0 0 0 3px rgba(22, 163, 74, 0.30);
+}
+[data-accent="may"] {  /* Lavender */
+  --brand-500: rgb(167, 139, 250);  --brand-600: rgb(142, 118, 213);  --brand-700: rgb(120, 100, 180);
+  --brand-tint: rgba(167, 139, 250, 0.14);
+  --bg-accent: rgb(167, 139, 250);  --bg-accent-hover: rgb(142, 118, 213);  --bg-accent-active: rgb(120, 100, 180);
+  --border-accent: rgb(167, 139, 250);
+  --fg-accent: rgb(117, 97, 175);  --fg-on-accent: rgb(25, 25, 28);
+  --focus-ring: 0 0 0 3px rgba(120, 100, 180, 0.32);
+}
+[data-accent="june"] {  /* Rainbow */
+  --brand-500: rgb(124, 58, 237);  --brand-600: rgb(105, 49, 201);  --brand-700: rgb(89, 42, 171);
+  --brand-tint: rgba(124, 58, 237, 0.12);
+  --bg-accent: rgb(124, 58, 237);  --bg-accent-hover: rgb(105, 49, 201);  --bg-accent-active: rgb(89, 42, 171);
+  --border-accent: rgb(124, 58, 237);
+  --fg-accent: rgb(124, 58, 237);  --fg-on-accent: rgb(255, 255, 255);
+  --focus-ring: 0 0 0 3px rgba(124, 58, 237, 0.30);
+  --brand-gradient: linear-gradient(to right, rgb(239, 68, 68), rgb(245, 158, 11), rgb(16, 185, 129), rgb(59, 130, 246), rgb(139, 92, 246));
+}
+[data-accent="july"] {  /* Peach */
+  --brand-500: rgb(253, 186, 116);  --brand-600: rgb(215, 158, 99);  --brand-700: rgb(182, 134, 84);
+  --brand-tint: rgba(253, 186, 116, 0.18);
+  --bg-accent: rgb(253, 186, 116);  --bg-accent-hover: rgb(215, 158, 99);  --bg-accent-active: rgb(182, 134, 84);
+  --border-accent: rgb(253, 186, 116);
+  --fg-accent: rgb(139, 102, 64);  --fg-on-accent: rgb(25, 25, 28);
+  --focus-ring: 0 0 0 3px rgba(182, 134, 84, 0.34);
+}
+[data-accent="august"] {  /* Silver / Grey */
+  --brand-500: rgb(156, 163, 175);  --brand-600: rgb(133, 139, 149);  --brand-700: rgb(112, 117, 126);
+  --brand-tint: rgba(156, 163, 175, 0.18);
+  --bg-accent: rgb(156, 163, 175);  --bg-accent-hover: rgb(133, 139, 149);  --bg-accent-active: rgb(112, 117, 126);
+  --border-accent: rgb(156, 163, 175);
+  --fg-accent: rgb(105, 109, 117);  --fg-on-accent: rgb(25, 25, 28);
+  --focus-ring: 0 0 0 3px rgba(112, 117, 126, 0.34);
+}
+[data-accent="september"] {  /* Yellow */
+  --brand-500: rgb(234, 179, 8);  --brand-600: rgb(199, 152, 7);  --brand-700: rgb(168, 129, 6);
+  --brand-tint: rgba(234, 179, 8, 0.16);
+  --bg-accent: rgb(234, 179, 8);  --bg-accent-hover: rgb(199, 152, 7);  --bg-accent-active: rgb(168, 129, 6);
+  --border-accent: rgb(234, 179, 8);
+  --fg-accent: rgb(138, 106, 5);  --fg-on-accent: rgb(25, 25, 28);
+  --focus-ring: 0 0 0 3px rgba(168, 129, 6, 0.32);
+}
+[data-accent="october"] {  /* Pink */
+  --brand-500: rgb(236, 72, 153);  --brand-600: rgb(201, 61, 130);  --brand-700: rgb(170, 52, 110);
+  --brand-tint: rgba(236, 72, 153, 0.12);
+  --bg-accent: rgb(236, 72, 153);  --bg-accent-hover: rgb(201, 61, 130);  --bg-accent-active: rgb(170, 52, 110);
+  --border-accent: rgb(236, 72, 153);
+  --fg-accent: rgb(184, 56, 119);  --fg-on-accent: rgb(25, 25, 28);
+  --focus-ring: 0 0 0 3px rgba(236, 72, 153, 0.30);
+}
+[data-accent="november"] {  /* Blue */
+  --brand-500: rgb(37, 99, 235);  --brand-600: rgb(31, 84, 200);  --brand-700: rgb(27, 71, 169);
+  --brand-tint: rgba(37, 99, 235, 0.12);
+  --bg-accent: rgb(37, 99, 235);  --bg-accent-hover: rgb(31, 84, 200);  --bg-accent-active: rgb(27, 71, 169);
+  --border-accent: rgb(37, 99, 235);
+  --fg-accent: rgb(36, 95, 226);  --fg-on-accent: rgb(255, 255, 255);
+  --focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.30);
+}
+[data-accent="december"] {  /* Red */
+  --brand-500: rgb(220, 38, 38);  --brand-600: rgb(187, 32, 32);  --brand-700: rgb(158, 27, 27);
+  --brand-tint: rgba(220, 38, 38, 0.12);
+  --bg-accent: rgb(220, 38, 38);  --bg-accent-hover: rgb(187, 32, 32);  --bg-accent-active: rgb(158, 27, 27);
+  --border-accent: rgb(220, 38, 38);
+  --fg-accent: rgb(220, 38, 38);  --fg-on-accent: rgb(255, 255, 255);
+  --focus-ring: 0 0 0 3px rgba(220, 38, 38, 0.30);
+}
+
+/* Dark-mode accent-text remap — lightened seed, ≥4.5:1 on near-black */
+[data-theme="dark"][data-accent="january"]  { --fg-accent: rgb(18, 150, 138); }
+[data-theme="dark"][data-accent="february"] { --fg-accent: rgb(234, 88, 12); }
+[data-theme="dark"][data-accent="march"]    { --fg-accent: rgb(158, 109, 242); }
+[data-theme="dark"][data-accent="april"]    { --fg-accent: rgb(22, 163, 74); }
+[data-theme="dark"][data-accent="may"]      { --fg-accent: rgb(167, 139, 250); }
+[data-theme="dark"][data-accent="june"]     { --fg-accent: rgb(158, 109, 242); }
+[data-theme="dark"][data-accent="july"]     { --fg-accent: rgb(253, 186, 116); }
+[data-theme="dark"][data-accent="august"]   { --fg-accent: rgb(156, 163, 175); }
+[data-theme="dark"][data-accent="september"]{ --fg-accent: rgb(234, 179, 8); }
+[data-theme="dark"][data-accent="october"]  { --fg-accent: rgb(236, 72, 153); }
+[data-theme="dark"][data-accent="november"] { --fg-accent: rgb(81, 130, 239); }
+[data-theme="dark"][data-accent="december"] { --fg-accent: rgb(228, 90, 90); }
+
+/* ============================================================
+   SEMANTIC TYPE STYLES
+   Apply directly to elements or via class.
+   ============================================================ */
+
+.ds-display {           /* hero / marketing numbers */
+  font-family: var(--font-sans);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--fg-primary);
+}
+.ds-h1, .page-title {   /* page titles */
+  font-family: var(--font-sans);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--fg-primary);
+}
+.ds-h2 {                /* section heads */
+  font-family: var(--font-sans);
+  font-size: var(--text-l);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--fg-primary);
+}
+.ds-h3 {                /* card titles */
+  font-family: var(--font-sans);
+  font-size: var(--text-m);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--fg-primary);
+}
+.ds-body {              /* default paragraph */
+  font-family: var(--font-sans);
+  font-size: var(--text-s);
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--fg-primary);
+}
+.ds-body-lg {
+  font-size: var(--text-m);
+  line-height: 1.55;
+}
+.ds-caption {           /* secondary / helper text */
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--fg-secondary);
+}
+.ds-overline {          /* uppercase labels, section titles */
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-tertiary);
+}
+.ds-code, code, pre {   /* inline + block code */
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  font-weight: 450;
+  font-feature-settings: 'liga' 0;
+}
