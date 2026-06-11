@@ -1,6 +1,7 @@
 import Foundation
 
-enum LogLevel: String, Codable, Sendable {
+enum LogLevel: String, Codable, Sendable, CaseIterable {
+    case debug
     case info
     case warn
     case error

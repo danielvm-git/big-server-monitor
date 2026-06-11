@@ -101,6 +101,7 @@ struct LogsSheet: View {
 
     private func lineColor(_ level: LogLevel) -> Color {
         switch level {
+        case .debug: Color(red: 0.55, green: 0.55, blue: 0.55)
         case .info: Color(red: 0.83, green: 0.83, blue: 0.83)
         case .warn: Color(red: 0.86, green: 0.86, blue: 0.67)
         case .error: Color(red: 0.96, green: 0.28, blue: 0.28)
