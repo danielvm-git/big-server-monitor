@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// 360pt popover skeleton per specs/design-handoff/PortKeeper.html.
-/// Server rows, projects, and sheets land in e03/e04.
+/// 360pt popover per specs/design-handoff/PortKeeper.html.
 struct PopoverView: View {
     @Environment(AppState.self) private var appState
+    @State private var expandedPort: Int?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -16,12 +16,42 @@ struct PopoverView: View {
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 28)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(appState.servers) { server in
+                            ServerRowView(server: server, expandedPort: $expandedPort)
+                        }
+                    }
+                }
+                .frame(maxHeight: 280)
+            }
+
+            if !appState.projectGroups.isEmpty {
+                Divider()
+                projectsSection
             }
 
             Divider()
             footer
         }
         .frame(width: 360)
+        .alert(
+            "Kill \(appState.killTarget?.processName ?? "") on :\(String(appState.killTarget?.port ?? 0))?",
+            isPresented: killAlertBinding
+        ) {
+            Button("Cancel", role: .cancel) {}
+            Button("Kill", role: .destructive) { appState.confirmKill() }
+        } message: {
+            Text("\(appState.killTarget?.projectName ?? "Process") (PID \(appState.killTarget?.pid.map(String.init) ?? "—")) will be killed and removed from the list.")
+        }
+    }
+
+    private var killAlertBinding: Binding<Bool> {
+        Binding(
+            get: { appState.killTarget != nil },
+            set: { if !$0 { appState.killTarget = nil } }
+        )
     }
 
     private var header: some View {
@@ -35,15 +65,43 @@ struct PopoverView: View {
             }
             Spacer()
             Button {
-                // refresh wired in e03
+                appState.refresh()
             } label: {
                 Image(systemName: "arrow.clockwise")
                     .font(.system(size: 11))
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
+            .help("Refresh")
         }
         .padding(.init(top: 12, leading: 14, bottom: 10, trailing: 14))
+    }
+
+    private var projectsSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("PROJECTS")
+                .font(.system(size: 10, weight: .semibold))
+                .kerning(0.6)
+                .foregroundStyle(.tertiary)
+            ForEach(appState.projectGroups, id: \.path) { group in
+                HStack(spacing: 6) {
+                    Image(systemName: "folder")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                    Text(group.path)
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Text("· \(group.active) active")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.tertiary)
+                }
+            }
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 14)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var footer: some View {
