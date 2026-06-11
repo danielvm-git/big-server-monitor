@@ -25,6 +25,11 @@ actor SettingsStore {
         current = AppConfig()
     }
 
+    /// Creates an in-memory fallback store when the disk path is unavailable.
+    static func fallback() -> SettingsStore {
+        try! SettingsStore(path: NSTemporaryDirectory() + "bigservermonitor-fallback-config.json")
+    }
+
     /// Loads config from disk. If the file is missing or corrupt, keeps defaults.
     func load() throws {
         guard FileManager.default.fileExists(atPath: configURL.path) else { return }

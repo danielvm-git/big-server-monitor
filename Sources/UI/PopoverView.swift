@@ -49,7 +49,7 @@ struct PopoverView: View {
             switch sheet {
             case .health: HealthCheckSheet()
             case .activity: ActivityLogSheet()
-            case .settings: Text("Settings — coming in e05").padding(40)
+            case .settings: SettingsSheet()
             }
         }
         .sheet(item: logsServerBinding) { server in

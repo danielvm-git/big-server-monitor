@@ -1,5 +1,6 @@
 import AppKit
 import Observation
+import ServiceManagement
 import SwiftUI
 
 enum ActiveSheet: String, Identifiable {
@@ -24,22 +25,34 @@ final class AppState {
     var activityEvents: [ActivityEvent] = []
     var logLines: [LogLine] = []
 
+    // Settings — mirrored from SettingsStore so the UI can observe them.
+    var configPollingInterval: TimeInterval = 5.0
+    var configHealthInterval: TimeInterval = 30.0
+    var configIgnoredPorts: [Int] = []
+    var configCrashAlerts: Bool = true
+    var configShowBadge: Bool = true
+    var configLaunchAtLogin: Bool = false
+
     @ObservationIgnored let monitor: ProcessMonitor
     @ObservationIgnored let health: HealthChecker
     @ObservationIgnored let logs: LogCapture
     @ObservationIgnored let activity: ActivityStore?
+    @ObservationIgnored let settings: SettingsStore
 
     init(
         monitor: ProcessMonitor = ProcessMonitor(),
         health: HealthChecker = HealthChecker(),
         logs: LogCapture = LogCapture(),
-        activity: ActivityStore? = nil
+        activity: ActivityStore? = nil,
+        settings: SettingsStore? = nil
     ) {
         self.monitor = monitor
         self.health = health
         self.logs = logs
         self.activity = activity ?? Self.defaultActivityStore()
+        self.settings = settings ?? Self.defaultSettingsStore()
         Task {
+            await loadSettings()
             await monitor.start()
             await consumeEvents()
         }
@@ -53,6 +66,10 @@ final class AppState {
 
     private static func defaultActivityStore() -> ActivityStore? {
         try? ActivityStore(path: supportDirectory() + "/activity.db")
+    }
+
+    private static func defaultSettingsStore() -> SettingsStore {
+        (try? SettingsStore(path: supportDirectory() + "/config.json")) ?? SettingsStore.fallback()
     }
 
     var activeCount: Int {
@@ -142,6 +159,43 @@ final class AppState {
     private func setPasteboard(_ text: String) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
+    }
+
+    // MARK: - Settings
+
+    func loadSettings() async {
+        try? await settings.load()
+        let config = await settings.current
+        configPollingInterval = config.pollingInterval
+        configHealthInterval = config.healthInterval
+        configIgnoredPorts = config.ignoredPorts
+        configCrashAlerts = config.notifications.crashAlerts
+        configShowBadge = config.notifications.showBadge
+        configLaunchAtLogin = config.launchAtLogin
+    }
+
+    func saveSettings() async {
+        let config = AppConfig(
+            scanDirs: [],
+            pollingInterval: configPollingInterval,
+            healthInterval: configHealthInterval,
+            ignoredPorts: configIgnoredPorts,
+            notifications: NotificationConfig(crashAlerts: configCrashAlerts, showBadge: configShowBadge),
+            launchAtLogin: configLaunchAtLogin
+        )
+        try? await settings.save(config)
+    }
+
+    func setLaunchAtLogin(_ enabled: Bool) async {
+        do {
+            if enabled {
+                try SMAppService.mainApp.register()
+            } else {
+                try await SMAppService.mainApp.unregister()
+            }
+        } catch {
+            // SMAppService may throw if not permitted; log and continue
+        }
     }
 
     // MARK: - Internal
