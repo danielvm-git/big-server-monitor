@@ -20,19 +20,19 @@ epics:
   - id: e01
     name: scaffold-and-brand
     description: "XcodeGen app target, MenuBarExtra skeleton, logo/app icon/wordmark assets"
-    status: pending
+    status: done
   - id: e02
     name: process-monitor-core
     description: "lsof polling actor, diff events, project detection, env redaction, kill"
-    status: pending
+    status: done
   - id: e03
     name: popover-ui
     description: "360pt popover: header, server rows w/ expand, projects, footer, kill confirm"
-    status: pending
+    status: done
   - id: e04
     name: health-activity-logs
     description: "HealthChecker + sheet, ActivityStore (GRDB) + sheet, LogCapture + LogsSheet w/ Copy for AI"
-    status: pending
+    status: in_progress
   - id: e05
     name: settings-notifications
     description: "Settings sheet + JSON persistence, launch-at-login, crash notifications w/ rate limit"

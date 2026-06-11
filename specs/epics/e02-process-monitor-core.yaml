@@ -1,6 +1,6 @@
 epic: e02
 name: process-monitor-core
-status: pending
+status: done
 goal: >
   Actor-based process monitoring: poll lsof every 5s, diff listening ports into
   started/stopped events, enrich with ps metadata, detect project names from

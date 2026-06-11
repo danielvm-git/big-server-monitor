@@ -6,8 +6,8 @@ session:
 active:
   release: 2.0.0
   flow: build_epic
-  epic: e01-scaffold-and-brand
-  story: e01s01
+  epic: e04-health-activity-logs
+  story: e04s01
   phase: BUILD
   branch: feat/swift6-rewrite
 
@@ -20,9 +20,22 @@ history:
       PortKeeper v1 (Go ECC kernel + Wails v2 + React 19) completed 2026-06-09/10:
       all 6 components, 150+ tests, Playwright e2e, structured slog logging.
       Superseded by the 2.0.0 Swift 6 rewrite (see release-plan.yaml).
+  - release: 2.0.0
+    epic: e01-scaffold-and-brand
+    status: committed
+    commit: 2b53c9c
+  - release: 2.0.0
+    epic: e02-process-monitor-core
+    status: committed
+    commit: b03b71d
+  - release: 2.0.0
+    epic: e03-popover-ui
+    status: committed
+    commit: edfd789
 
 handoff: >
   Swift 6 rewrite in progress on feat/swift6-rewrite. Plan approved at
   ~/.claude/plans/continue-cuddly-origami.md. Design handoff bundle preserved
   at specs/design-handoff/. Epic capsules at specs/epics/e0[1-6]-*.yaml.
-  Next: e01 scaffold (xcodegen project, MenuBarExtra skeleton, brand assets).
+  e01-e03 committed. e04 (health-activity-logs) uncommitted — all three
+  stories have source files and tests staged in working tree.

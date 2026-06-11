@@ -1,6 +1,6 @@
 epic: e03
 name: popover-ui
-status: pending
+status: done
 goal: >
   360pt popover matching specs/design-handoff/PortKeeper.html: header with
   wordmark + active count + refresh, scrollable server list with expandable

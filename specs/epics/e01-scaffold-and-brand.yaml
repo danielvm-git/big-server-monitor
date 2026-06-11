@@ -1,6 +1,6 @@
 epic: e01
 name: scaffold-and-brand
-status: pending
+status: done
 goal: >
   Buildable Swift 6 menubar app named BigServerMonitor with brand assets
   from specs/design-handoff/ and a static popover skeleton.
