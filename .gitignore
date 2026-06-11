@@ -4,3 +4,8 @@ frontend/dist
 frontend/package.json.md5
 frontend/test-results/
 frontend/playwright-report/
+
+# Swift / Xcode (generated)
+BigServerMonitor.xcodeproj/
+DerivedData/
+.swiftpm/
