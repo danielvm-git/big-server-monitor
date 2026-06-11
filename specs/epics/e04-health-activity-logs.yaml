@@ -1,6 +1,6 @@
 epic: e04
 name: health-activity-logs
-status: in_progress
+status: done
 goal: >
   HealthChecker actor + sheet, ActivityStore (GRDB SQLite) + timeline sheet,
   LogCapture ring buffer + LogsSheet with filters and Copy for AI. Port

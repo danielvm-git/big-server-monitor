@@ -1,6 +1,6 @@
 epic: e05
 name: settings-notifications
-status: pending
+status: in_progress
 goal: >
   Settings persistence + sheet (scan dirs, intervals, ignored ports, toggles),
   SMAppService launch-at-login, UserNotifications crash alerts with 60s
