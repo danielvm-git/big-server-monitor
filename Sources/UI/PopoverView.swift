@@ -45,6 +45,30 @@ struct PopoverView: View {
         } message: {
             Text("\(appState.killTarget?.projectName ?? "Process") (PID \(appState.killTarget?.pid.map(String.init) ?? "—")) will be killed and removed from the list.")
         }
+        .sheet(item: sheetBinding) { sheet in
+            switch sheet {
+            case .health: HealthCheckSheet()
+            case .activity: ActivityLogSheet()
+            case .settings: Text("Settings — coming in e05").padding(40)
+            }
+        }
+        .sheet(item: logsServerBinding) { server in
+            LogsSheet(server: server)
+        }
+    }
+
+    private var sheetBinding: Binding<ActiveSheet?> {
+        Binding(
+            get: { appState.activeSheet },
+            set: { appState.activeSheet = $0 }
+        )
+    }
+
+    private var logsServerBinding: Binding<Server?> {
+        Binding(
+            get: { appState.logsServer },
+            set: { appState.logsServer = $0 }
+        )
     }
 
     private var killAlertBinding: Binding<Bool> {
@@ -106,9 +130,15 @@ struct PopoverView: View {
 
     private var footer: some View {
         VStack(spacing: 2) {
-            FooterButton(icon: "waveform.path.ecg", title: "Health Check") {}
-            FooterButton(icon: "clock.arrow.circlepath", title: "Activity Log") {}
-            FooterButton(icon: "gearshape", title: "Settings") {}
+            FooterButton(icon: "waveform.path.ecg", title: "Health Check") {
+                appState.activeSheet = .health
+            }
+            FooterButton(icon: "clock.arrow.circlepath", title: "Activity Log") {
+                appState.activeSheet = .activity
+            }
+            FooterButton(icon: "gearshape", title: "Settings") {
+                appState.activeSheet = .settings
+            }
         }
         .padding(8)
     }

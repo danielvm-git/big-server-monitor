@@ -40,6 +40,10 @@ struct ServerRowView: View {
             Spacer(minLength: 0)
 
             HStack(spacing: 4) {
+                RowIconButton(systemName: "terminal", tint: .secondary) {
+                    appState.openLogs(for: server)
+                }
+                .help("View logs")
                 if server.status == .online {
                     RowIconButton(systemName: "xmark", tint: .red) {
                         appState.killTarget = server
