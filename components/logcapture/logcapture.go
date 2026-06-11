@@ -12,7 +12,6 @@ import (
 
 const version = "0.1.0"
 const maxBufferSize = 500
-const maxCrashLogsPersisted = 200
 
 // LogLevel represents the severity of a log line.
 type LogLevel string
@@ -53,21 +52,20 @@ type ProcessInfo struct {
 // LogCapture is the main component for capturing and storing logs from processes.
 type LogCapture struct {
 	mu      sync.RWMutex
-	buffers map[int]*ringBuffer      // port -> ring buffer
-	pidInfo map[int]*ProcessInfo      // port -> process info
-	seq     int64                     // global sequence counter
+	buffers map[int]*ringBuffer  // port -> ring buffer
+	pidInfo map[int]*ProcessInfo // port -> process info
+	seq     int64                // global sequence counter
 	logger  kernel.Logger
 }
 
-// ringBuffer implements a fixed-size ring buffer for log lines.
+// ringBuffer is a fixed-capacity FIFO log buffer: once full, each new line
+// shifts the oldest out, preserving insertion order with oldest at index 0.
 type ringBuffer struct {
 	lines    []*LogLine
 	capacity int
-	head     int // index where next write goes
-	isFull   bool
 }
 
-// newRingBuffer creates a new ring buffer with the specified capacity.
+// newRingBuffer creates a new buffer with the specified capacity.
 func newRingBuffer(capacity int) *ringBuffer {
 	return &ringBuffer{
 		lines:    make([]*LogLine, 0, capacity),

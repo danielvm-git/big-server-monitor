@@ -63,12 +63,12 @@ func (dn *defaultNotifier) Notify(ctx context.Context, title, message string) er
 
 // Notifications handles system notifications for PortKeeper
 type Notifications struct {
-	config       Config
-	logger       kernel.Logger
-	ctx          *kernel.Context
-	rateLimiter  *rateLimiter
+	config        Config
+	logger        kernel.Logger
+	ctx           *kernel.Context
+	rateLimiter   *rateLimiter
 	hasPermission bool
-	notifier     Notifier
+	notifier      Notifier
 }
 
 // New creates a new Notifications component
@@ -82,7 +82,7 @@ func New() *Notifications {
 			cooldown: 60 * time.Second,
 		},
 		hasPermission: false,
-		notifier:     &defaultNotifier{},
+		notifier:      &defaultNotifier{},
 	}
 }
 
@@ -215,9 +215,9 @@ func (n *Notifications) handleProcessCrashed(ctx *kernel.Context, event kernel.E
 		notificationEvent := kernel.Event{
 			Name: "notification.delivered",
 			Data: map[string]any{
-				"port":        port,
-				"title":       title,
-				"message":     message,
+				"port":    port,
+				"title":   title,
+				"message": message,
 			},
 		}
 

@@ -38,24 +38,6 @@ func (m *mockEventBus) SubscriberCount() int {
 	return 0
 }
 
-// mockKernel for testing
-type mockKernel struct {
-	eventBus *mockEventBus
-}
-
-func (m *mockKernel) EventBus() *kernel.EventBus {
-	// Return nil since mockEventBus doesn't match *kernel.EventBus type
-	return nil
-}
-
-// testContext creates a minimal Context for testing
-func testContext(logger kernel.Logger, eventBus kernel.EventBus) *kernel.Context {
-	return &kernel.Context{
-		Logger:     logger,
-		Components: make(map[string]kernel.Component),
-	}
-}
-
 func TestConfigPersistence(t *testing.T) {
 	t.Run("save config to file exists at expected path with correct JSON", func(t *testing.T) {
 		// Setup

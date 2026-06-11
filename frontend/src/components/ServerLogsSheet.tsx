@@ -1,10 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
 import { Copy, Check, X } from 'lucide-react';
 import { logcapture } from '../../wailsjs/go/models';
+import { GetLogsForAI } from '../../wailsjs/go/main/App';
 import '../styles/sheets.css';
-
-const getLogsForAI = (port: number): Promise<string> =>
-  (window as any).go.main.App.GetLogsForAI(port);
 
 interface ServerLogsSheetProps {
   port: number;
@@ -49,7 +47,7 @@ export default function ServerLogsSheet({ port, processName, logs, onClose }: Se
 
   const handleCopyForAI = useCallback(async () => {
     try {
-      const text = await getLogsForAI(port);
+      const text = await GetLogsForAI(port);
       await navigator.clipboard.writeText(text);
       setCopied(true);
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);

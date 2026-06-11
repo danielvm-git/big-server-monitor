@@ -29,30 +29,6 @@ func (ml *mockLogger) log(level, msg string, args []any) {
 	ml.mu.Unlock()
 }
 
-// mockEventBus for testing event emission
-type mockEventBus struct {
-	mu      sync.Mutex
-	emitted []kernel.Event
-}
-
-func (meb *mockEventBus) Emit(event kernel.Event, ctx *kernel.Context) error {
-	meb.mu.Lock()
-	meb.emitted = append(meb.emitted, event)
-	meb.mu.Unlock()
-	return nil
-}
-
-func (meb *mockEventBus) hasEvent(name string) bool {
-	meb.mu.Lock()
-	defer meb.mu.Unlock()
-	for _, e := range meb.emitted {
-		if e.Name == name {
-			return true
-		}
-	}
-	return false
-}
-
 func TestProbeOnlineServer(t *testing.T) {
 	// Start a test HTTP server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -288,12 +264,12 @@ func TestGetHealthResults(t *testing.T) {
 	// Manually add a result
 	hc.mu.Lock()
 	hc.results[8080] = HealthResult{
-		Port:      8080,
-		Status:    HealthOK,
+		Port:       8080,
+		Status:     HealthOK,
 		StatusCode: 200,
-		LatencyMs: 42.5,
-		Protocol:  "http",
-		CheckedAt: time.Now(),
+		LatencyMs:  42.5,
+		Protocol:   "http",
+		CheckedAt:  time.Now(),
 	}
 	hc.mu.Unlock()
 
@@ -366,7 +342,7 @@ func TestProbePostgres(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to listen: %v", err)
 	}
-	defer ln.Close()
+	defer func() { _ = ln.Close() }()
 
 	port := ln.Addr().(*net.TCPAddr).Port
 
@@ -375,8 +351,8 @@ func TestProbePostgres(t *testing.T) {
 		if err != nil {
 			return
 		}
-		defer conn.Close()
-		conn.Write([]byte{0, 0, 0, 0, 0})
+		defer func() { _ = conn.Close() }()
+		_, _ = conn.Write([]byte{0, 0, 0, 0, 0})
 	}()
 
 	hc := &HealthCheck{
@@ -404,7 +380,7 @@ func TestProbeRedis(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to listen: %v", err)
 	}
-	defer ln.Close()
+	defer func() { _ = ln.Close() }()
 
 	port := ln.Addr().(*net.TCPAddr).Port
 
@@ -413,10 +389,10 @@ func TestProbeRedis(t *testing.T) {
 		if err != nil {
 			return
 		}
-		defer conn.Close()
+		defer func() { _ = conn.Close() }()
 		buf := make([]byte, 6)
-		conn.Read(buf)
-		conn.Write([]byte("+PONG\r\n"))
+		_, _ = conn.Read(buf)
+		_, _ = conn.Write([]byte("+PONG\r\n"))
 	}()
 
 	hc := &HealthCheck{
@@ -441,7 +417,7 @@ func TestProbeMySQL(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to listen: %v", err)
 	}
-	defer ln.Close()
+	defer func() { _ = ln.Close() }()
 
 	port := ln.Addr().(*net.TCPAddr).Port
 
@@ -450,8 +426,8 @@ func TestProbeMySQL(t *testing.T) {
 		if err != nil {
 			return
 		}
-		defer conn.Close()
-		conn.Write([]byte{0x0a})
+		defer func() { _ = conn.Close() }()
+		_, _ = conn.Write([]byte{0x0a})
 	}()
 
 	hc := &HealthCheck{
@@ -476,7 +452,7 @@ func TestProbeMongoDB(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to listen: %v", err)
 	}
-	defer ln.Close()
+	defer func() { _ = ln.Close() }()
 
 	port := ln.Addr().(*net.TCPAddr).Port
 
@@ -485,8 +461,8 @@ func TestProbeMongoDB(t *testing.T) {
 		if err != nil {
 			return
 		}
-		defer conn.Close()
-		conn.Write([]byte{0x01})
+		defer func() { _ = conn.Close() }()
+		_, _ = conn.Write([]byte{0x01})
 	}()
 
 	hc := &HealthCheck{
@@ -511,7 +487,7 @@ func TestProbeMemcached(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to listen: %v", err)
 	}
-	defer ln.Close()
+	defer func() { _ = ln.Close() }()
 
 	port := ln.Addr().(*net.TCPAddr).Port
 
@@ -520,10 +496,10 @@ func TestProbeMemcached(t *testing.T) {
 		if err != nil {
 			return
 		}
-		defer conn.Close()
+		defer func() { _ = conn.Close() }()
 		buf := make([]byte, 10)
-		conn.Read(buf)
-		conn.Write([]byte("VERSION 1.4.0\r\n"))
+		_, _ = conn.Read(buf)
+		_, _ = conn.Write([]byte("VERSION 1.4.0\r\n"))
 	}()
 
 	hc := &HealthCheck{
@@ -548,7 +524,7 @@ func TestProbeTimeout(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to listen: %v", err)
 	}
-	defer ln.Close()
+	defer func() { _ = ln.Close() }()
 
 	port := ln.Addr().(*net.TCPAddr).Port
 
@@ -557,7 +533,7 @@ func TestProbeTimeout(t *testing.T) {
 		if err != nil {
 			return
 		}
-		defer conn.Close()
+		defer func() { _ = conn.Close() }()
 		time.Sleep(time.Second)
 	}()
 

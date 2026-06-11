@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -259,17 +258,4 @@ func (a *App) RemoveScanDirectory(dir string) error {
 		return fmt.Errorf("settings not available")
 	}
 	return a.settingsComp.RemoveScanDirectory(dir)
-}
-
-// ---------------------------------------------------------------------------
-// Lifecycle helpers
-// ---------------------------------------------------------------------------
-
-// marshalJSON is a convenience helper for returning JSON snippets to the UI.
-func marshalJSON(v any) string {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return fmt.Sprintf(`{"error":"%s"}`, err.Error())
-	}
-	return string(b)
 }

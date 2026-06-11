@@ -24,13 +24,13 @@ func newMockContext(t *testing.T) (*kernel.Context, string, func()) {
 	tmpDir := t.TempDir()
 	k := newMockKernel()
 	return &kernel.Context{
-		Kernel:     k,
-		Logger:     mockLogger{},
-		Components: make(map[string]kernel.Component),
-		Config:     make(map[string]json.RawMessage),
-	}, tmpDir, func() {
-		os.RemoveAll(tmpDir)
-	}
+			Kernel:     k,
+			Logger:     mockLogger{},
+			Components: make(map[string]kernel.Component),
+			Config:     make(map[string]json.RawMessage),
+		}, tmpDir, func() {
+			_ = os.RemoveAll(tmpDir)
+		}
 }
 
 func TestEventPersistence(t *testing.T) {
@@ -47,7 +47,7 @@ func TestEventPersistence(t *testing.T) {
 	if err := al.Start(ctx); err != nil {
 		t.Fatalf("Start failed: %v", err)
 	}
-	defer al.Stop(ctx)
+	defer func() { _ = al.Stop(ctx) }()
 
 	// Emit a started event
 	event := kernel.Event{
@@ -109,7 +109,7 @@ func TestFilterByProject(t *testing.T) {
 	if err := al.Start(ctx); err != nil {
 		t.Fatalf("Start failed: %v", err)
 	}
-	defer al.Stop(ctx)
+	defer func() { _ = al.Stop(ctx) }()
 
 	// Emit events for different projects
 	events := []kernel.Event{
@@ -174,7 +174,7 @@ func TestClearHistory(t *testing.T) {
 	if err := al.Start(ctx); err != nil {
 		t.Fatalf("Start failed: %v", err)
 	}
-	defer al.Stop(ctx)
+	defer func() { _ = al.Stop(ctx) }()
 
 	// Insert an event
 	event := kernel.Event{
@@ -231,7 +231,7 @@ func TestRetentionCleanup(t *testing.T) {
 	if err := al.Start(ctx); err != nil {
 		t.Fatalf("Start failed: %v", err)
 	}
-	defer al.Stop(ctx)
+	defer func() { _ = al.Stop(ctx) }()
 
 	// Manually insert an old event
 	oldTime := time.Now().AddDate(0, 0, -40)
@@ -298,7 +298,7 @@ func TestEventCounts(t *testing.T) {
 	if err := al.Start(ctx); err != nil {
 		t.Fatalf("Start failed: %v", err)
 	}
-	defer al.Stop(ctx)
+	defer func() { _ = al.Stop(ctx) }()
 
 	// Emit multiple event types
 	events := []kernel.Event{
@@ -385,7 +385,7 @@ func TestPaginationAndOffset(t *testing.T) {
 	if err := al.Start(ctx); err != nil {
 		t.Fatalf("Start failed: %v", err)
 	}
-	defer al.Stop(ctx)
+	defer func() { _ = al.Stop(ctx) }()
 
 	// Insert multiple events
 	for i := 0; i < 10; i++ {

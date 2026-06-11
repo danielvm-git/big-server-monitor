@@ -203,7 +203,7 @@ func TestComponentInterface(t *testing.T) {
 		}
 
 		schema := lc.ConfigSchema()
-		if schema != nil && len(schema) > 0 {
+		if len(schema) > 0 {
 			// Should be valid JSON
 			var m map[string]any
 			if err := json.Unmarshal(schema, &m); err != nil {
@@ -424,17 +424,17 @@ func TestOnLogLineCaptureMultipleLevels(t *testing.T) {
 	logHook := findHook(lc.Hooks(), "log.line")
 
 	// Emit info
-	logHook.Handler(ctx, kernel.Event{
+	_ = logHook.Handler(ctx, kernel.Event{
 		Name: "log.line",
 		Data: map[string]any{"port": 3000, "text": "Server listening"},
 	})
 	// Emit warn
-	logHook.Handler(ctx, kernel.Event{
+	_ = logHook.Handler(ctx, kernel.Event{
 		Name: "log.line",
 		Data: map[string]any{"port": 3000, "text": "WARNING: deprecated API"},
 	})
 	// Emit error
-	logHook.Handler(ctx, kernel.Event{
+	_ = logHook.Handler(ctx, kernel.Event{
 		Name: "log.line",
 		Data: map[string]any{"port": 3000, "text": "Error: something broke"},
 	})
@@ -460,13 +460,13 @@ func TestProcessStoppedClearsBuffer(t *testing.T) {
 
 	// Start process and add log lines
 	startedHook := findHook(lc.Hooks(), "process.started")
-	startedHook.Handler(ctx, kernel.Event{
+	_ = startedHook.Handler(ctx, kernel.Event{
 		Name: "process.started",
 		Data: map[string]any{"port": 3000, "pid": 12345},
 	})
 
 	logHook := findHook(lc.Hooks(), "log.line")
-	logHook.Handler(ctx, kernel.Event{
+	_ = logHook.Handler(ctx, kernel.Event{
 		Name: "log.line",
 		Data: map[string]any{"port": 3000, "text": "some log line"},
 	})

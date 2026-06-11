@@ -146,4 +146,3 @@ func TestGetMonitorStatusBinding(t *testing.T) {
 		t.Error("expected unhealthy status for uninitialized app")
 	}
 }
-

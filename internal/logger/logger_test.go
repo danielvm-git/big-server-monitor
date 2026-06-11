@@ -44,7 +44,9 @@ func TestSlogAdapterWritesJSON(t *testing.T) {
 
 	// Verify content of first line
 	var first map[string]any
-	json.Unmarshal([]byte(lines[0]), &first)
+	if err := json.Unmarshal([]byte(lines[0]), &first); err != nil {
+		t.Fatalf("unmarshal first line: %v", err)
+	}
 	if first["msg"] != "server started" {
 		t.Errorf("expected msg 'server started', got %v", first["msg"])
 	}

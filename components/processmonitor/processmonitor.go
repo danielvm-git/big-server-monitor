@@ -83,9 +83,9 @@ type ProcessCrashedEvent struct {
 
 // Config for ProcessMonitor
 type Config struct {
-	PollingIntervalSec int    `json:"pollingIntervalSec"`
+	PollingIntervalSec int      `json:"pollingIntervalSec"`
 	ScanDirectories    []string `json:"scanDirectories"`
-	IgnoredPorts       []int  `json:"ignoredPorts"`
+	IgnoredPorts       []int    `json:"ignoredPorts"`
 }
 
 // lockInfo wraps sync.RWMutex for convenience
@@ -113,7 +113,7 @@ type ProcessMonitor struct {
 	config          Config
 	servers         map[int]*Server // port -> Server
 	previousServers map[int]*Server // for diff detection
-	runtimeCache    map[int]string   // pid -> runtime version
+	runtimeCache    map[int]string  // pid -> runtime version
 	status          MonitorStatus
 	ctx             *kernel.Context
 	ticker          *time.Ticker
@@ -194,11 +194,8 @@ func (pm *ProcessMonitor) Start(ctx *kernel.Context) error {
 		// Perform initial poll
 		pm.poll(ctx)
 
-		for {
-			select {
-			case <-ticker.C:
-				pm.poll(ctx)
-			}
+		for range ticker.C {
+			pm.poll(ctx)
 		}
 	}()
 
@@ -401,12 +398,12 @@ func (pm *ProcessMonitor) isPortIgnored(port int) bool {
 
 // processInfo represents retrieved process metadata
 type processInfo struct {
-	PID        int
+	PID         int
 	ProcessName string
-	BinaryPath string
-	WorkingDir string
-	MemoryMB   float64
-	StartTime  time.Time
+	BinaryPath  string
+	WorkingDir  string
+	MemoryMB    float64
+	StartTime   time.Time
 }
 
 // detectProjectName determines project name from working directory
@@ -586,7 +583,7 @@ func (pm *ProcessMonitor) detectNgrokTunnel(targetPort int) string {
 	if err != nil {
 		return ""
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -596,7 +593,7 @@ func (pm *ProcessMonitor) detectNgrokTunnel(targetPort int) string {
 	var result struct {
 		Tunnels []struct {
 			PublicURL string `json:"public_url"`
-			Config struct {
+			Config    struct {
 				Addr string `json:"addr"`
 			} `json:"config"`
 		} `json:"tunnels"`
@@ -668,15 +665,15 @@ func (pm *ProcessMonitor) loadEnvSnapshot(workDir string) []EnvVar {
 
 // safeEnvKeys are environment variables safe to display
 var safeEnvKeys = map[string]bool{
-	"NODE_ENV":      true,
-	"APP_ENV":       true,
-	"GO_ENV":        true,
-	"PORT":          true,
-	"HOST":          true,
-	"DATABASE_URL":  true,
-	"REDIS_URL":     true,
-	"LOG_LEVEL":     true,
-	"DEBUG":         true,
+	"NODE_ENV":     true,
+	"APP_ENV":      true,
+	"GO_ENV":       true,
+	"PORT":         true,
+	"HOST":         true,
+	"DATABASE_URL": true,
+	"REDIS_URL":    true,
+	"LOG_LEVEL":    true,
+	"DEBUG":        true,
 }
 
 // redactEnvPatterns mask sensitive env vars

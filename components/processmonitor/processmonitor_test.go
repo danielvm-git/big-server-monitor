@@ -142,8 +142,8 @@ func TestProjectNameDetection(t *testing.T) {
 			wantName: "github.com/user/myproject",
 		},
 		{
-			name: "DirectoryFallback",
-			files: map[string]string{},
+			name:     "DirectoryFallback",
+			files:    map[string]string{},
 			wantName: "test-dir",
 		},
 	}
@@ -177,19 +177,19 @@ func TestProjectNameDetection(t *testing.T) {
 // TestUptimeFormat verifies uptime string formatting
 func TestUptimeFormat(t *testing.T) {
 	tests := []struct {
-		startTime time.Time
+		startTime  time.Time
 		wantPrefix string
 	}{
 		{
-			startTime: time.Now().Add(-2 * time.Hour),
+			startTime:  time.Now().Add(-2 * time.Hour),
 			wantPrefix: "2h",
 		},
 		{
-			startTime: time.Now().Add(-30 * time.Minute),
+			startTime:  time.Now().Add(-30 * time.Minute),
 			wantPrefix: "30m",
 		},
 		{
-			startTime: time.Now().Add(-45 * time.Second),
+			startTime:  time.Now().Add(-45 * time.Second),
 			wantPrefix: "45s",
 		},
 	}
@@ -235,10 +235,10 @@ func TestStatusConstants(t *testing.T) {
 // TestEnvVarRedaction verifies safe keys are shown and others redacted
 func TestEnvVarRedaction(t *testing.T) {
 	tests := []struct {
-		key      string
-		value    string
+		key         string
+		value       string
 		wantVisible bool
-		wantValue string
+		wantValue   string
 	}{
 		{"NODE_ENV", "production", true, "production"},
 		{"PORT", "3000", true, "3000"},
@@ -576,11 +576,13 @@ func TestGetMonitorStatus(t *testing.T) {
 	// After successful poll, should be healthy
 	mock := &mockDiscovery{
 		ports: []int{3000},
-		info: processInfo{PID: 12345, ProcessName: "node"},
+		info:  processInfo{PID: 12345, ProcessName: "node"},
 	}
 	pm.discovery = mock
 	ctx := mockContext()
-	pm.Init(ctx, nil)
+	if err := pm.Init(ctx, nil); err != nil {
+		t.Fatalf("Init failed: %v", err)
+	}
 	pm.poll(ctx)
 
 	status = pm.GetMonitorStatus()
@@ -598,7 +600,9 @@ func TestGetMonitorStatus(t *testing.T) {
 func TestGetMonitorStatusWithError(t *testing.T) {
 	pm := New()
 	ctx := mockContext()
-	pm.Init(ctx, nil)
+	if err := pm.Init(ctx, nil); err != nil {
+		t.Fatalf("Init failed: %v", err)
+	}
 
 	// Poll with error
 	mock := &mockDiscovery{err: fmt.Errorf("lsof not available")}

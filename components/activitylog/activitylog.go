@@ -27,16 +27,16 @@ const (
 
 // ActivityEvent represents a single activity log entry
 type ActivityEvent struct {
-	ID          int64      `json:"id"`
-	Type        EventType  `json:"type"`
-	Port        int        `json:"port"`
-	ProcessName string     `json:"processName"`
-	ProjectName string     `json:"projectName"`
-	ProjectDir  string     `json:"projectDir"`
-	Timestamp   time.Time  `json:"timestamp"`
-	Duration    *string    `json:"duration,omitempty"`
-	ExitCode    *int       `json:"exitCode,omitempty"`
-	Message     string     `json:"message"`
+	ID          int64     `json:"id"`
+	Type        EventType `json:"type"`
+	Port        int       `json:"port"`
+	ProcessName string    `json:"processName"`
+	ProjectName string    `json:"projectName"`
+	ProjectDir  string    `json:"projectDir"`
+	Timestamp   time.Time `json:"timestamp"`
+	Duration    *string   `json:"duration,omitempty"`
+	ExitCode    *int      `json:"exitCode,omitempty"`
+	Message     string    `json:"message"`
 }
 
 // ActivityFilter specifies how to query the activity log
@@ -51,8 +51,8 @@ type ActivityFilter struct {
 
 // Config represents the component configuration
 type Config struct {
-	DBPath       string `json:"db_path"`
-	RetentionDays int   `json:"retention_days"`
+	DBPath        string `json:"db_path"`
+	RetentionDays int    `json:"retention_days"`
 }
 
 // ActivityLog is the main component
@@ -254,7 +254,7 @@ func (al *ActivityLog) GetActivityLog(filter ActivityFilter) ([]ActivityEvent, e
 	if err != nil {
 		return nil, fmt.Errorf("query activity log: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var events []ActivityEvent
 	for rows.Next() {
@@ -315,7 +315,7 @@ func (al *ActivityLog) GetEventCounts() map[EventType]int {
 	if err != nil {
 		return counts
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
 		var typeStr string

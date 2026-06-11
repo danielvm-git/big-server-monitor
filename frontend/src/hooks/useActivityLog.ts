@@ -1,11 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { activitylog } from '../../wailsjs/go/models';
-
-const getActivityLog = (f: activitylog.ActivityFilter): Promise<activitylog.ActivityEvent[]> =>
-  (window as any).go.main.App.GetActivityLog(f);
-
-const clearHistoryCall = (): Promise<void> =>
-  (window as any).go.main.App.ClearHistory();
+import { GetActivityLog, ClearHistory } from '../../wailsjs/go/main/App';
 
 const DEFAULT_FILTER = new activitylog.ActivityFilter({ EventTypes: [], Limit: 100 });
 
@@ -17,7 +12,7 @@ export function useActivityLog(initialFilter?: activitylog.ActivityFilter) {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    getActivityLog(filters)
+    GetActivityLog(filters)
       .then((data: activitylog.ActivityEvent[]) => {
         if (!cancelled) {
           setEvents(data);
@@ -38,7 +33,7 @@ export function useActivityLog(initialFilter?: activitylog.ActivityFilter) {
 
   const clearHistory = useCallback(async () => {
     try {
-      await clearHistoryCall();
+      await ClearHistory();
       setEvents([]);
     } catch {
       /* noop */

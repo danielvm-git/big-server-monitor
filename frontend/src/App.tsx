@@ -16,6 +16,7 @@ import { useActivityLog } from './hooks/useActivityLog';
 import { useSettings } from './hooks/useSettings';
 import { useLogs } from './hooks/useLogs';
 import type { processmonitor } from '../wailsjs/go/models';
+import { KillProcess } from '../wailsjs/go/main/App';
 import './styles/theme.css';
 import './styles/animations.css';
 import './styles/popover.css';
@@ -58,7 +59,7 @@ function App() {
   const handleConfirmKill = useCallback(async () => {
     if (!serverToKill) return;
     try {
-      await (window as any).go?.main?.App?.KillProcess(serverToKill.pid);
+      await KillProcess(serverToKill.pid);
       refreshServers();
     } catch (e) {
       console.error('KillProcess failed:', e);

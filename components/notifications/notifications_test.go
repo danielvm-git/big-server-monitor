@@ -42,7 +42,7 @@ func (ml *MockLogger) Debug(msg string, args ...any) {
 
 // MockNotifier for testing
 type MockNotifier struct {
-	mu           sync.Mutex
+	mu            sync.Mutex
 	notifications []struct {
 		title   string
 		message string
@@ -61,7 +61,7 @@ func (mn *MockNotifier) Notify(ctx context.Context, title, message string) error
 
 // MockEventBus for testing
 type MockEventBus struct {
-	mu          sync.Mutex
+	mu            sync.Mutex
 	emittedEvents []kernel.Event
 }
 
@@ -245,10 +245,10 @@ func TestNotificationRespectsSetting(t *testing.T) {
 	event := kernel.Event{
 		Name: "process.crashed",
 		Data: map[string]any{
-			"port": 3000,
+			"port":        3000,
 			"processName": "node",
 			"projectName": "bigbase-api",
-			"uptimeStr": "2h 03m",
+			"uptimeStr":   "2h 03m",
 		},
 	}
 
@@ -305,10 +305,10 @@ func TestRateLimiting(t *testing.T) {
 	event1 := kernel.Event{
 		Name: "process.crashed",
 		Data: map[string]any{
-			"port": port,
+			"port":        port,
 			"processName": "node",
 			"projectName": "bigbase-api",
-			"uptimeStr": "2h 03m",
+			"uptimeStr":   "2h 03m",
 		},
 	}
 
@@ -329,10 +329,10 @@ func TestRateLimiting(t *testing.T) {
 	event2 := kernel.Event{
 		Name: "process.crashed",
 		Data: map[string]any{
-			"port": port,
+			"port":        port,
 			"processName": "node",
 			"projectName": "bigbase-api",
-			"uptimeStr": "10m",
+			"uptimeStr":   "10m",
 		},
 	}
 
@@ -390,10 +390,10 @@ func TestRateLimitingExpiry(t *testing.T) {
 	event1 := kernel.Event{
 		Name: "process.crashed",
 		Data: map[string]any{
-			"port": port,
+			"port":        port,
 			"processName": "node",
 			"projectName": "bigbase-api",
-			"uptimeStr": "2h 03m",
+			"uptimeStr":   "2h 03m",
 		},
 	}
 
@@ -417,10 +417,10 @@ func TestRateLimitingExpiry(t *testing.T) {
 	event2 := kernel.Event{
 		Name: "process.crashed",
 		Data: map[string]any{
-			"port": port,
+			"port":        port,
 			"processName": "node",
 			"projectName": "bigbase-api",
-			"uptimeStr": "15m",
+			"uptimeStr":   "15m",
 		},
 	}
 

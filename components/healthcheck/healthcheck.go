@@ -18,40 +18,40 @@ const version = "0.1.0"
 type HealthStatus string
 
 const (
-	HealthOK      HealthStatus = "ok"       // 2xx status code
-	HealthWarn    HealthStatus = "warn"     // 3xx or 4xx status code
-	HealthError   HealthStatus = "error"    // 5xx status code
-	HealthTimeout HealthStatus = "timeout"  // no response or timeout
+	HealthOK      HealthStatus = "ok"      // 2xx status code
+	HealthWarn    HealthStatus = "warn"    // 3xx or 4xx status code
+	HealthError   HealthStatus = "error"   // 5xx status code
+	HealthTimeout HealthStatus = "timeout" // no response or timeout
 )
 
 // HealthResult represents the result of a single health check probe
 type HealthResult struct {
-	Port       int       `json:"port"`
+	Port       int          `json:"port"`
 	Status     HealthStatus `json:"status"`
-	StatusCode int       `json:"statusCode"`
-	LatencyMs  float64   `json:"latencyMs"`
-	Protocol   string    `json:"protocol"`
-	Scheme     string    `json:"scheme,omitempty"`
-	CheckedAt  time.Time `json:"checkedAt"`
-	Error      string    `json:"error,omitempty"`
+	StatusCode int          `json:"statusCode"`
+	LatencyMs  float64      `json:"latencyMs"`
+	Protocol   string       `json:"protocol"`
+	Scheme     string       `json:"scheme,omitempty"`
+	CheckedAt  time.Time    `json:"checkedAt"`
+	Error      string       `json:"error,omitempty"`
 }
 
 // Config holds configuration for the HealthCheck component
 type Config struct {
-	ProbeTimeout           time.Duration `json:"probeTimeout"`
-	HealthCheckInterval    time.Duration `json:"healthCheckInterval"`
-	MaxConcurrentProbes    int           `json:"maxConcurrentProbes"`
-	EnabledProtocols       map[string]bool `json:"enabledProtocols,omitempty"`
+	ProbeTimeout        time.Duration   `json:"probeTimeout"`
+	HealthCheckInterval time.Duration   `json:"healthCheckInterval"`
+	MaxConcurrentProbes int             `json:"maxConcurrentProbes"`
+	EnabledProtocols    map[string]bool `json:"enabledProtocols,omitempty"`
 }
 
 // HealthCheck is the main component for health checking ports
 type HealthCheck struct {
-	mu        sync.RWMutex
-	results   map[int]HealthResult
-	config    Config
-	stopChan  chan struct{}
-	logger    kernel.Logger
-	eventBus  *kernel.EventBus
+	mu       sync.RWMutex
+	results  map[int]HealthResult
+	config   Config
+	stopChan chan struct{}
+	logger   kernel.Logger
+	eventBus *kernel.EventBus
 }
 
 // New creates a new HealthCheck component with default configuration
@@ -367,9 +367,13 @@ func (hc *HealthCheck) probePostgres(port int, timeout time.Duration) HealthResu
 		result.Error = "connection failed"
 		return result
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
-	conn.SetReadDeadline(time.Now().Add(timeout))
+	if err := conn.SetReadDeadline(time.Now().Add(timeout)); err != nil {
+		result.Status = HealthTimeout
+		result.Error = "set deadline failed"
+		return result
+	}
 	buf := make([]byte, 5)
 	_, err = conn.Read(buf)
 
@@ -401,9 +405,13 @@ func (hc *HealthCheck) probeMySQL(port int, timeout time.Duration) HealthResult 
 		result.Error = "connection failed"
 		return result
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
-	conn.SetReadDeadline(time.Now().Add(timeout))
+	if err := conn.SetReadDeadline(time.Now().Add(timeout)); err != nil {
+		result.Status = HealthTimeout
+		result.Error = "set deadline failed"
+		return result
+	}
 	buf := make([]byte, 1)
 	_, err = conn.Read(buf)
 
@@ -435,10 +443,13 @@ func (hc *HealthCheck) probeRedis(port int, timeout time.Duration) HealthResult 
 		result.Error = "connection failed"
 		return result
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
-	conn.SetWriteDeadline(time.Now().Add(timeout))
-	conn.SetReadDeadline(time.Now().Add(timeout))
+	if err := conn.SetDeadline(time.Now().Add(timeout)); err != nil {
+		result.Status = HealthTimeout
+		result.Error = "set deadline failed"
+		return result
+	}
 
 	_, err = fmt.Fprintf(conn, "PING\r\n")
 	if err != nil {
@@ -478,9 +489,13 @@ func (hc *HealthCheck) probeMongoDB(port int, timeout time.Duration) HealthResul
 		result.Error = "connection failed"
 		return result
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
-	conn.SetReadDeadline(time.Now().Add(timeout))
+	if err := conn.SetReadDeadline(time.Now().Add(timeout)); err != nil {
+		result.Status = HealthTimeout
+		result.Error = "set deadline failed"
+		return result
+	}
 	buf := make([]byte, 1)
 	_, err = conn.Read(buf)
 
@@ -512,10 +527,13 @@ func (hc *HealthCheck) probeMemcached(port int, timeout time.Duration) HealthRes
 		result.Error = "connection failed"
 		return result
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
-	conn.SetWriteDeadline(time.Now().Add(timeout))
-	conn.SetReadDeadline(time.Now().Add(timeout))
+	if err := conn.SetDeadline(time.Now().Add(timeout)); err != nil {
+		result.Status = HealthTimeout
+		result.Error = "set deadline failed"
+		return result
+	}
 
 	_, err = fmt.Fprintf(conn, "version\r\n")
 	if err != nil {

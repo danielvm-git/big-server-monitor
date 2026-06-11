@@ -1,11 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { healthcheck } from '../../wailsjs/go/models';
-
-const getHealthResults = (): Promise<healthcheck.HealthResult[]> =>
-  (window as any).go.main.App.GetHealthResults();
-
-const runHealthCheck = (ports: number[]): Promise<healthcheck.HealthResult[]> =>
-  (window as any).go.main.App.RunHealthCheck(ports);
+import { GetHealthResults, RunHealthCheck } from '../../wailsjs/go/main/App';
 
 export function useHealthResults(ports: number[]) {
   const [results, setResults] = useState<healthcheck.HealthResult[]>([]);
@@ -13,7 +8,7 @@ export function useHealthResults(ports: number[]) {
 
   const fetch = useCallback(async () => {
     try {
-      const r = await getHealthResults();
+      const r = await GetHealthResults();
       setResults(r);
     } catch {
       /* noop */
@@ -29,7 +24,7 @@ export function useHealthResults(ports: number[]) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await runHealthCheck(ports);
+      const r = await RunHealthCheck(ports);
       setResults(r);
     } catch {
       /* noop */
