@@ -36,11 +36,11 @@ epics:
   - id: e05
     name: settings-notifications
     description: "Settings sheet + JSON persistence, launch-at-login, crash notifications w/ rate limit"
-    status: in_progress
+    status: done
   - id: e06
     name: cutover
     description: "Delete Go/React/Wails, rewrite CLAUDE.md/CONVENTIONS/README, .gitignore, setup.sh"
-    status: pending
+    status: in_progress
 
 milestones:
   - name: "M1: It lives in the menubar"

@@ -1,6 +1,6 @@
 epic: e06
 name: cutover
-status: pending
+status: in_progress
 goal: >
   Remove the legacy Go/Wails/React implementation and make the Swift app the
   sole product of the repo. Rewrite project docs for the Swift toolchain.

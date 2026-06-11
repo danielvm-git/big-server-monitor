@@ -6,8 +6,8 @@ session:
 active:
   release: 2.0.0
   flow: build_epic
-  epic: e05-settings-notifications
-  story: e05s01
+  epic: e06-cutover
+  story: e06s01
   phase: BUILD
   branch: feat/swift6-rewrite
 
@@ -36,6 +36,10 @@ history:
     epic: e04-health-activity-logs
     status: committed
     commit: f42179f
+  - release: 2.0.0
+    epic: e05-settings-notifications
+    status: committed
+    commit: multiple (SettingsStore, JSONLogger, Notifier, SettingsSheet, AppState wiring)
 
 handoff: >
   Swift 6 rewrite in progress on feat/swift6-rewrite. Plan approved at
