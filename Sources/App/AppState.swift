@@ -2,6 +2,7 @@ import AppKit
 import Observation
 import ServiceManagement
 import SwiftUI
+import UserNotifications
 
 enum ActiveSheet: String, Identifiable {
     case health
@@ -38,20 +39,27 @@ final class AppState {
     @ObservationIgnored let logs: LogCapture
     @ObservationIgnored let activity: ActivityStore?
     @ObservationIgnored let settings: SettingsStore
+    @ObservationIgnored let logger: JSONLogger
+    @ObservationIgnored let notifier: Notifier
 
     init(
         monitor: ProcessMonitor = ProcessMonitor(),
         health: HealthChecker = HealthChecker(),
         logs: LogCapture = LogCapture(),
         activity: ActivityStore? = nil,
-        settings: SettingsStore? = nil
+        settings: SettingsStore? = nil,
+        logger: JSONLogger? = nil,
+        notifier: Notifier = Notifier()
     ) {
         self.monitor = monitor
         self.health = health
         self.logs = logs
         self.activity = activity ?? Self.defaultActivityStore()
         self.settings = settings ?? Self.defaultSettingsStore()
+        self.logger = logger ?? Self.defaultLogger()
+        self.notifier = notifier
         Task {
+            await self.logger.info("BigServerMonitor started", context: [:])
             await loadSettings()
             await monitor.start()
             await consumeEvents()
@@ -70,6 +78,10 @@ final class AppState {
 
     private static func defaultSettingsStore() -> SettingsStore {
         (try? SettingsStore(path: supportDirectory() + "/config.json")) ?? SettingsStore.fallback()
+    }
+
+    private static func defaultLogger() -> JSONLogger {
+        (try? JSONLogger(path: supportDirectory() + "/bigservermonitor.log")) ?? JSONLogger.fallback()
     }
 
     var activeCount: Int {
@@ -203,9 +215,56 @@ final class AppState {
     private func consumeEvents() async {
         let stream = await monitor.events()
         await syncServers()
+        await requestNotificationPermission()
         for await event in stream {
+            await logger.info("Server event", context: eventContext(event))
             await recordActivity(event)
+            await handleCrashNotification(event)
             await syncServers()
+        }
+    }
+
+    private func eventContext(_ event: ServerEvent) -> [String: String] {
+        switch event {
+        case .started(let server):
+            return ["type": "started", "port": String(server.port), "process": server.processName]
+        case .stopped(let server, let duration):
+            return ["type": "stopped", "port": String(server.port), "process": server.processName, "duration": String(Int(duration))]
+        }
+    }
+
+    private func handleCrashNotification(_ event: ServerEvent) async {
+        guard case .stopped(let server, let duration) = event else { return }
+        guard configCrashAlerts else { return }
+        guard await notifier.shouldNotify(port: server.port) else { return }
+
+        let message = formatCrashMessage(for: server, duration: duration)
+        let content = UNMutableNotificationContent()
+        content.title = "Server stopped"
+        content.body = message
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: "crash-\(server.port)-\(Date().timeIntervalSince1970)",
+            content: content,
+            trigger: nil
+        )
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+            await notifier.recordNotification(port: server.port)
+        } catch {
+            await logger.error("Failed to deliver notification", context: ["port": String(server.port)])
+        }
+    }
+
+    private func requestNotificationPermission() async {
+        do {
+            let granted = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])
+            if !granted {
+                await logger.warn("Notification permission denied", context: [:])
+            }
+        } catch {
+            await logger.error("Notification permission request failed", context: [:])
         }
     }
 

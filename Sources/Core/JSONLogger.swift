@@ -19,6 +19,11 @@ actor JSONLogger {
         try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
     }
 
+    /// Fallback in-memory logger when disk path is unavailable.
+    static func fallback() -> JSONLogger {
+        try! JSONLogger(path: NSTemporaryDirectory() + "bigservermonitor-fallback.log")
+    }
+
     func debug(_ msg: String, context: [String: String] = [:]) async {
         await log(level: .debug, msg: msg, context: context)
     }
