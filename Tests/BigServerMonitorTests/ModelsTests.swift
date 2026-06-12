@@ -23,4 +23,27 @@ import Testing
         )
         #expect(server.uptime == "—")
     }
+
+    @Test func displayNamePrefersProjectName() {
+        let withProject = Server(port: 3000, processName: "node", pid: nil, status: .online,
+                                 projectName: "my-app", projectPath: nil, binaryPath: nil,
+                                 memoryMB: nil, startedAt: nil)
+        #expect(withProject.displayName == "my-app")
+
+        let withoutProject = Server(port: 3000, processName: "node", pid: nil, status: .online,
+                                    projectName: nil, projectPath: nil, binaryPath: nil,
+                                    memoryMB: nil, startedAt: nil)
+        #expect(withoutProject.displayName == "node")
+    }
+
+    @Test func matchesSearchTextByNameAndPort() {
+        let server = Server(port: 3000, processName: "node", pid: nil, status: .online,
+                            projectName: "next-app", projectPath: nil, binaryPath: nil,
+                            memoryMB: nil, startedAt: nil)
+        #expect(server.matches(searchText: "") == true)
+        #expect(server.matches(searchText: "next") == true)
+        #expect(server.matches(searchText: "3000") == true)
+        #expect(server.matches(searchText: "NEXT") == true)
+        #expect(server.matches(searchText: "rails") == false)
+    }
 }
