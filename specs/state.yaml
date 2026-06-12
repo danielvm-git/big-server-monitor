@@ -45,13 +45,19 @@ history:
     commit: multiple (legacy removal, docs refresh)
 
 handoff: >
-  All 6 epics committed and built. 53 tests pass. VERIFY phase started.
-  Automated gates: BUILD OK, tests 53/53, no legacy files.
-  M1 (menubar icon + popover): PASSED manually.
-  M2 (server interaction): BLOCKED — onTapGesture/tiny icon buttons broken in
-    MenuBarExtra. Replaced with chevron expand + labeled buttons (commit 4776913).
-    Old app instance cached in menubar preventing new build from showing.
-    To resume: killall BigServerMonitor, killall SystemUIServer, then launch
-    fresh build and test M2 expand/kill flow.
-  M3 (health/activity/logs/settings): PENDING after M2 unblocked.
-  M4 (cutover): PASSED automated checks.
+  VERIFY phase complete 2026-06-11. Tests 53/53, BUILD OK.
+  M1 (menubar icon + popover): PASSED.
+  M2 (server interaction): PASSED — two fixes during UAT:
+    (a) chevron expand + labeled buttons (4776913),
+    (b) server list collapsed to zero height: LazyVStack/flexible ScrollView
+        get zero proposed height in MenuBarExtra sizing pass; eager VStack +
+        explicit height from row count (a91bfc1).
+  M3 (health/activity/logs/settings): PASSED — two fixes during UAT (addfe0c):
+    (a) LogCapture had no feed; now pulls unified log (`log show`) per PID
+        on Logs open, per specs/005 v1 design.
+    (b) sheets attached to MenuBarExtra popover died on first click;
+        converted to standalone Window scenes + NSApp.activate (LSUIElement).
+  M4 (cutover): PASSED automated checks (no .go/.tsx, tests green).
+  Known limitation: notification permission fails on unsigned debug builds;
+  recheck crash alerts on signed Release build.
+  Next: RELEASE phase — push branch, open PR to main (M4 verify requires PR).
