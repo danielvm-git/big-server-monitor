@@ -40,7 +40,7 @@ epics:
   - id: e06
     name: cutover
     description: "Delete Go/React/Wails, rewrite CLAUDE.md/CONVENTIONS/README, .gitignore, setup.sh"
-    status: in_progress
+    status: done
 
 milestones:
   - name: "M1: It lives in the menubar"
