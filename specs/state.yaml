@@ -7,7 +7,7 @@ active:
   release: 2.1.0
   flow: build_epic
   epic: e07
-  phase: BUILD
+  phase: REVIEW
   branch: feat/e07-window-app
 
 release:
@@ -57,8 +57,10 @@ history:
     commit: multiple (legacy removal, docs refresh)
 
 handoff:
-  next_skill: kickoff-branch
+  next_skill: none
   context: >
-    Starting e07-window-app. Step 1 (survey-context) complete — epic YAML written,
-    release-plan.yaml updated. Next: kickoff-branch to create feat/e07-window-app
-    off main, then TDD through all 7 stories.
+    e07-window-app complete. PR #3 open at
+    https://github.com/danielvm-git/big-server-monitor/pull/3.
+    61/61 tests passing. Audit passed. PR checklist in PR body.
+    After merge: tag v2.1.0, update release.last_tag, update e07 status to done
+    in specs/epics/e07-window-app.yaml and release-plan.yaml.
