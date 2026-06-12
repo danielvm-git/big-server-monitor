@@ -17,14 +17,14 @@ struct SidebarColorTests {
     }
 
     @Test func onlineLabelIsRunning() {
-        #expect(ServerStatus.online.label == "running")
+        #expect(ServerStatus.online.statusLabel == "running")
     }
 
     @Test func offlineLabelIsCrashed() {
-        #expect(ServerStatus.offline.label == "crashed")
+        #expect(ServerStatus.offline.statusLabel == "crashed")
     }
 
     @Test func unknownLabelIsUnresponsive() {
-        #expect(ServerStatus.unknown.label == "unresponsive")
+        #expect(ServerStatus.unknown.statusLabel == "unresponsive")
     }
 }

@@ -7,11 +7,7 @@ struct SidebarView: View {
     var searchText: String
 
     private var filteredServers: [Server] {
-        guard !searchText.isEmpty else { return appState.servers }
-        return appState.servers.filter {
-            $0.displayName.localizedCaseInsensitiveContains(searchText) ||
-            String($0.port).contains(searchText)
-        }
+        appState.servers.filter { $0.matches(searchText: searchText) }
     }
 
     var body: some View {
@@ -79,20 +75,3 @@ struct SidebarView: View {
     }
 }
 
-// MARK: - Helpers
-
-extension Server {
-    var displayName: String {
-        projectName ?? processName
-    }
-}
-
-extension ServerStatus {
-    var color: Color {
-        switch self {
-        case .online:  .green
-        case .offline: .red
-        case .unknown: .orange
-        }
-    }
-}

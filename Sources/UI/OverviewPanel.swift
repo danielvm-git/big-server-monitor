@@ -5,11 +5,7 @@ struct OverviewPanel: View {
     var searchText: String
 
     private var filtered: [Server] {
-        guard !searchText.isEmpty else { return appState.servers }
-        return appState.servers.filter {
-            $0.displayName.localizedCaseInsensitiveContains(searchText) ||
-            String($0.port).contains(searchText)
-        }
+        appState.servers.filter { $0.matches(searchText: searchText) }
     }
 
     private var activeCount: Int   { appState.servers.filter { $0.status == .online }.count }
@@ -148,7 +144,7 @@ struct StatusBadge: View {
     let status: ServerStatus
 
     var body: some View {
-        Text(status.label)
+        Text(status.statusLabel)
             .font(.caption.bold())
             .foregroundStyle(status.color)
             .padding(.horizontal, 7)
@@ -157,12 +153,3 @@ struct StatusBadge: View {
     }
 }
 
-extension ServerStatus {
-    var label: String {
-        switch self {
-        case .online:  "running"
-        case .offline: "crashed"
-        case .unknown: "unresponsive"
-        }
-    }
-}
