@@ -5,9 +5,8 @@ session:
 
 active:
   release: 2.0.0
-  flow: build_epic
-  epic: e06-cutover
-  story: done
+  flow: verify_work
+  epic: all
   phase: VERIFY
   branch: feat/swift6-rewrite
 
@@ -46,8 +45,13 @@ history:
     commit: multiple (legacy removal, docs refresh)
 
 handoff: >
-  Swift 6 rewrite in progress on feat/swift6-rewrite. Plan approved at
-  ~/.claude/plans/continue-cuddly-origami.md. Design handoff bundle preserved
-  at specs/design-handoff/. Epic capsules at specs/epics/e0[1-6]-*.yaml.
-  e01-e03 committed. e04 (health-activity-logs) uncommitted — all three
-  stories have source files and tests staged in working tree.
+  All 6 epics committed and built. 53 tests pass. VERIFY phase started.
+  Automated gates: BUILD OK, tests 53/53, no legacy files.
+  M1 (menubar icon + popover): PASSED manually.
+  M2 (server interaction): BLOCKED — onTapGesture/tiny icon buttons broken in
+    MenuBarExtra. Replaced with chevron expand + labeled buttons (commit 4776913).
+    Old app instance cached in menubar preventing new build from showing.
+    To resume: killall BigServerMonitor, killall SystemUIServer, then launch
+    fresh build and test M2 expand/kill flow.
+  M3 (health/activity/logs/settings): PENDING after M2 unblocked.
+  M4 (cutover): PASSED automated checks.
