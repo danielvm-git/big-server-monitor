@@ -1,6 +1,6 @@
 epic: e07
 name: window-app
-status: todo
+status: done
 wsjf: 1.75
 wsjf_rationale: >
   BV=8 (paradigm shift from menubar-only to standard macOS app), TC=3, RR=2,

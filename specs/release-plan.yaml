@@ -44,7 +44,7 @@ epics:
   - id: e07
     name: window-app
     description: "Convert to dock app: WindowGroup main window, two-pane sidebar+overview UI, keep menubar as secondary"
-    status: todo
+    status: done
     wsjf: 1.75
 
 milestones:
