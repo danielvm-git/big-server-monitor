@@ -5,22 +5,19 @@ session:
 
 active:
   release: 2.1.0
-  flow: build_epic
+  flow: release
   epic: e07
-  phase: BUILD
-  branch: feat/e07-window-app
+  phase: RELEASE
+  branch: feat/swift6-rewrite
 
 release:
-  pr: "https://github.com/danielvm-git/big-server-monitor/pull/1"
-  pr_opened: "2026-06-11"
-  merged: "2026-06-11"
+  pr: "https://github.com/danielvm-git/big-server-monitor/pull/4"
+  pr_opened: "2026-06-12"
   last_tag: v2.0.0
 
 epic_cycle:
   epic: e07
-  step: 1
-  story: e07s01
-  story_bcps: 7
+  status: merging
 
 metrics:
   story_start: "2026-06-12T00:00:00Z"
@@ -55,10 +52,14 @@ history:
     epic: e06-cutover
     status: committed
     commit: multiple (legacy removal, docs refresh)
+  - release: 2.1.0
+    epic: e07-window-app
+    status: merged
+    pr: "https://github.com/danielvm-git/big-server-monitor/pull/4"
 
 handoff:
-  next_skill: kickoff-branch
+  next_skill: none
   context: >
-    Starting e07-window-app. Step 1 (survey-context) complete — epic YAML written,
-    release-plan.yaml updated. Next: kickoff-branch to create feat/e07-window-app
-    off main, then TDD through all 7 stories.
+    e07-window-app merged to main via PR #4. 61/61 tests passing.
+    Next: tag v2.1.0, update release-plan.yaml e07 status to done,
+    update e07-window-app.yaml status to done.
