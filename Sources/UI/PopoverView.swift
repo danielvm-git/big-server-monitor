@@ -17,14 +17,19 @@ struct PopoverView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 28)
             } else {
+                // VStack, not LazyVStack: MenuBarExtra's window sizing pass
+                // proposes zero height to lazy content, collapsing the list.
+                // ScrollView won't grow on its own here either, so size it
+                // explicitly from the row count (~56pt/row), capped at 280.
                 ScrollView {
-                    LazyVStack(spacing: 0) {
+                    VStack(spacing: 0) {
                         ForEach(appState.servers) { server in
                             ServerRowView(server: server, expandedPort: $expandedPort)
                         }
                     }
+                    .fixedSize(horizontal: false, vertical: true)
                 }
-                .frame(maxHeight: 280)
+                .frame(height: min(280, CGFloat(appState.servers.count) * 56))
             }
 
             if !appState.projectGroups.isEmpty {
