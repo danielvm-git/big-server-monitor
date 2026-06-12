@@ -6,63 +6,59 @@ struct ServerRowView: View {
     @Environment(AppState.self) private var appState
     let server: Server
     @Binding var expandedPort: Int?
-    @State private var hovering = false
 
     private var isExpanded: Bool { expandedPort == server.port }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            statusDot
-                .padding(.top, 4)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top, spacing: 10) {
+                statusDot
+                    .padding(.top, 4)
 
-            VStack(alignment: .leading, spacing: 1) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(":\(String(server.port))")
-                        .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                    Text(server.processName)
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
-                if let project = server.projectName, !project.isEmpty {
-                    Text(project)
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-                Text(server.uptime)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.tertiary)
-
-                if isExpanded {
-                    expandedDetails
-                }
-            }
-            Spacer(minLength: 0)
-
-            HStack(spacing: 4) {
-                RowIconButton(systemName: "terminal", tint: .secondary) {
-                    appState.openLogs(for: server)
-                }
-                .help("View logs")
-                if server.status == .online {
-                    RowIconButton(systemName: "xmark", tint: .red) {
-                        appState.killTarget = server
+                VStack(alignment: .leading, spacing: 1) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(":\(String(server.port))")
+                            .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                        Text(server.processName)
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
                     }
-                    .help("Kill process")
+                    if let project = server.projectName, !project.isEmpty {
+                        Text(project)
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                    Text(server.uptime)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.tertiary)
                 }
+
+                Spacer(minLength: 4)
+
+                // Expand/collapse chevron button
+                Button {
+                    withAnimation(.easeOut(duration: 0.15)) {
+                        expandedPort = isExpanded ? nil : server.port
+                    }
+                } label: {
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 20, height: 20)
+                }
+                .buttonStyle(.plain)
+                .help(isExpanded ? "Collapse" : "Expand")
             }
-            .padding(.top, 2)
+
+            if isExpanded {
+                expandedDetails
+                    .padding(.leading, 18)
+            }
         }
         .padding(.vertical, 9)
         .padding(.horizontal, 14)
-        .contentShape(Rectangle())
-        .background(hovering ? Color.primary.opacity(0.05) : .clear)
-        .onHover { hovering = $0 }
-        .onTapGesture {
-            withAnimation(.easeOut(duration: 0.15)) {
-                expandedPort = isExpanded ? nil : server.port
-            }
-        }
+        .overlay(alignment: .bottom) { Divider() }
     }
 
     private var statusDot: some View {
@@ -81,14 +77,38 @@ struct ServerRowView: View {
     }
 
     private var expandedDetails: some View {
-        Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 6) {
-            GridRow {
-                detail("PID", server.pid.map(String.init) ?? "—")
-                detail("MEMORY", server.memoryMB.map { String(format: "%.0f MB", $0) } ?? "—")
+        VStack(alignment: .leading, spacing: 8) {
+            Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 6) {
+                GridRow {
+                    detail("PID", server.pid.map(String.init) ?? "—")
+                    detail("MEMORY", server.memoryMB.map { String(format: "%.0f MB", $0) } ?? "—")
+                }
+                GridRow {
+                    detail("BINARY", server.binaryPath ?? "—")
+                        .gridCellColumns(2)
+                }
             }
-            GridRow {
-                detail("BINARY", server.binaryPath ?? "—")
-                    .gridCellColumns(2)
+
+            HStack(spacing: 6) {
+                Button {
+                    appState.openLogs(for: server)
+                } label: {
+                    Label("Logs", systemImage: "terminal")
+                        .font(.system(size: 11))
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+
+                if server.status == .online {
+                    Button(role: .destructive) {
+                        appState.killTarget = server
+                    } label: {
+                        Label("Kill", systemImage: "xmark")
+                            .font(.system(size: 11))
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
             }
         }
         .padding(8)
@@ -107,22 +127,5 @@ struct ServerRowView: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
         }
-    }
-}
-
-struct RowIconButton: View {
-    let systemName: String
-    var tint: Color = .secondary
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(tint)
-                .frame(width: 22, height: 22)
-                .background(tint.opacity(0.1), in: RoundedRectangle(cornerRadius: 5))
-        }
-        .buttonStyle(.plain)
     }
 }
