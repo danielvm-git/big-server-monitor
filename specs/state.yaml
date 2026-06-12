@@ -5,10 +5,15 @@ session:
 
 active:
   release: 2.0.0
-  flow: verify_work
+  flow: release
   epic: all
-  phase: VERIFY
+  phase: RELEASE
   branch: feat/swift6-rewrite
+
+release:
+  pr: "https://github.com/danielvm-git/big-server-monitor/pull/1"
+  pr_opened: "2026-06-11"
+  pending: "merge PR, then tag v2.0.0 on main (release.last_tag)"
 
 metrics:
   story_start: "2026-06-11T00:00:00Z"
@@ -60,4 +65,5 @@ handoff: >
   M4 (cutover): PASSED automated checks (no .go/.tsx, tests green).
   Known limitation: notification permission fails on unsigned debug builds;
   recheck crash alerts on signed Release build.
-  Next: RELEASE phase — push branch, open PR to main (M4 verify requires PR).
+  RELEASE: branch + main pushed to github.com/danielvm-git/big-server-monitor;
+  PR #1 open. After merge: tag v2.0.0, set release.last_tag, archive this flow.
