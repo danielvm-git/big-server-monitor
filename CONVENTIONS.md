@@ -1,15 +1,19 @@
-# PortKeeper Conventions
+# BigServerMonitor Conventions
 
-## Architecture: ECC
-- Kernel owns component lifecycle (Init → Start → Stop)
-- Components communicate via EventBus (no direct imports)
-- Each component lives in components/<name>/<name>.go
+## Architecture
+- Swift 6 actors for concurrency, @Observable + @MainActor for UI state
+- Components in Sources/Core/ are actors — no @MainActor, no SwiftUI imports
+- UI in Sources/UI/ reads @Environment(AppState.self)
+- AppState bridges actors → UI via observable properties
+- No direct imports between Core/ components
 
-## Go
-- camelCase unexported, PascalCase exported
+## Swift
+- camelCase for properties and functions, PascalCase for types
 - Acronyms all-caps: HTTP, URL, API, JSON, PID
-- Error wrapping: fmt.Errorf("context: %w", err)
-- Table-driven tests with t.Run
+- Actors for async state (ProcessMonitor, ActivityStore)
+- @Observable + @MainActor for UI-facing state (AppState)
+- Tests use Swift Testing: `@Suite`, `@Test`, `#expect`
+- Table-driven patterns where possible (use arrays of tuples in tests)
 
 ## Git
 - Conventional Commits: feat:, fix:, chore:, test:, docs:

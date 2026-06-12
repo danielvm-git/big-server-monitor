@@ -1,19 +1,57 @@
-# README
+# BigServerMonitor
 
-## About
+macOS menubar app for monitoring local development servers.
 
-This is the official Wails React-TS template.
+Built with Swift 6 / SwiftUI, MenuBarExtra, GRDB (SQLite), and structured JSON logging.
 
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+## Features
 
-## Live Development
+- **Process Monitor** — polls lsof every 5s, detects started/stopped servers on local ports
+- **Health Check** — HTTP probes with status classification (ok/slow/warn/error/timeout)
+- **Activity Log** — persisted event timeline (SQLite) with 30-day retention
+- **Log Capture** — per-port ring buffer with Copy for AI export
+- **Crash Notifications** — rate-limited UserNotifications when servers stop unexpectedly
+- **Settings** — configurable intervals, ignored ports, launch-at-login
 
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
+## Requirements
 
-## Building
+- macOS 14.0+
+- Xcode 16+ (Swift 6)
 
-To build a redistributable, production mode package, use `wails build`.
+## Quick Start
+
+```bash
+# Setup (idempotent, safe to run multiple times)
+bash scripts/setup.sh
+
+# Build
+xcodebuild -project BigServerMonitor.xcodeproj -scheme BigServerMonitor build
+
+# Run
+open build/Debug/BigServerMonitor.app
+
+# Test
+xcodebuild test -project BigServerMonitor.xcodeproj -scheme BigServerMonitor -only-testing BigServerMonitorTests
+```
+
+## Architecture
+
+```
+Sources/
+  App/    AppState (@Observable @MainActor), BigServerMonitorApp (MenuBarExtra)
+  Core/   ProcessMonitor, HealthChecker, ActivityStore, LogCapture, Notifier,
+          SettingsStore, JSONLogger, Models, PortDiscovery, ProjectDetection
+  UI/     PopoverView, ServerRowView, HealthCheckSheet, ActivityLogSheet,
+          LogsSheet, SettingsSheet, Brand
+```
+
+Actors own async state. AppState bridges actors to SwiftUI via `@Observable` properties.
+No direct imports between Core/ components.
+
+## Observability
+
+| What | Path |
+|------|------|
+| App logs | `~/Library/Application Support/BigServerMonitor/bigservermonitor.log` |
+| Config | `~/Library/Application Support/BigServerMonitor/config.json` |
+| Activity DB | `~/Library/Application Support/BigServerMonitor/activity.db` |

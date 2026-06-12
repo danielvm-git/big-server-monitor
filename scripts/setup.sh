@@ -1,60 +1,41 @@
 #!/usr/bin/env bash
-# PortKeeper — idempotent setup script.
+# BigServerMonitor — idempotent setup script.
 # Run this before first launch or after a fresh clone.
 # Safe to run multiple times — every step checks before acting.
 set -euo pipefail
 
-CONFIG_DIR="$HOME/.config/portkeeper"
-CONFIG_FILE="$CONFIG_DIR/config.json"
-LOG_FILE="$CONFIG_DIR/portkeeper.log"
-DB_FILE="$CONFIG_DIR/activity.db"
+APP_SUPPORT="$HOME/Library/Application Support/BigServerMonitor"
+CONFIG_FILE="$APP_SUPPORT/config.json"
+LOG_FILE="$APP_SUPPORT/bigservermonitor.log"
 
-echo "==> PortKeeper setup"
-echo "    Config dir:  $CONFIG_DIR"
-echo "    Config file: $CONFIG_FILE"
-echo "    Log file:    $LOG_FILE"
-echo "    DB file:     $DB_FILE"
+echo "==> BigServerMonitor setup"
+echo "    App Support: $APP_SUPPORT"
+echo "    Config:      $CONFIG_FILE"
+echo "    Log:         $LOG_FILE"
 echo ""
 
-# 1. Create config directory (idempotent)
-if [ ! -d "$CONFIG_DIR" ]; then
-    mkdir -p "$CONFIG_DIR"
-    echo "✓ Created $CONFIG_DIR"
+# 1. Create Application Support directory (idempotent)
+if [ ! -d "$APP_SUPPORT" ]; then
+    mkdir -p "$APP_SUPPORT"
+    echo "✓ Created $APP_SUPPORT"
 else
-    echo "• $CONFIG_DIR already exists, skipping"
+    echo "• $APP_SUPPORT already exists, skipping"
 fi
 
-# 2. Create default config file if missing (idempotent)
-if [ ! -f "$CONFIG_FILE" ]; then
-    cat > "$CONFIG_FILE" <<'JSON'
-{
-  "scanDirectories": ["~/projects", "~/Developer", "~/opensrc"],
-  "pollingIntervalSeconds": 5,
-  "healthCheckIntervalSeconds": 30,
-  "ignoredPorts": [80, 443, 5432, 3306, 6379, 27017],
-  "logRetentionDays": 30,
-  "notifications": {
-    "crashAlerts": true,
-    "showBadge": true
-  },
-  "launchAtLogin": false
-}
-JSON
-    echo "✓ Created default $CONFIG_FILE"
+# 2. Generate Xcode project (idempotent)
+if command -v xcodegen &> /dev/null; then
+    xcodegen --spec project.yml --quiet 2>/dev/null || xcodegen --spec project.yml
+    echo "✓ Xcode project generated"
 else
-    echo "• $CONFIG_FILE already exists, skipping"
+    echo "⚠ xcodegen not found — install with: brew install xcodegen"
 fi
 
-# 3. Create log file if missing (idempotent)
-if [ ! -f "$LOG_FILE" ]; then
-    touch "$LOG_FILE"
-    echo "✓ Created $LOG_FILE"
-else
-    echo "• $LOG_FILE already exists, skipping"
-fi
+# 3. Build (idempotent — Xcode handles incremental builds)
+xcodebuild -project BigServerMonitor.xcodeproj -scheme BigServerMonitor build 2>&1 | tail -1
+echo "✓ Build complete"
 
-# 4. DB is created by activitylog component on first run — no action needed.
-echo "• $DB_FILE will be created by the activitylog component on first run"
+# 4. DB and config are created by the app on first run — no action needed.
+echo "• App will create $CONFIG_FILE and $LOG_FILE on first launch"
 
 echo ""
-echo "==> Setup complete. Run 'wails dev' to start."
+echo "==> Setup complete. Run: open build/Debug/BigServerMonitor.app"
