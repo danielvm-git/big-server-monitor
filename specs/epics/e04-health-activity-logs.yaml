@@ -1,0 +1,43 @@
+epic: e04
+name: health-activity-logs
+status: done
+goal: >
+  HealthChecker actor + sheet, ActivityStore (GRDB SQLite) + timeline sheet,
+  LogCapture ring buffer + LogsSheet with filters and Copy for AI. Port
+  behaviors/tests from healthcheck, activitylog, logcapture Go components.
+
+stories:
+  - id: e04s01
+    title: Health checking
+    acceptance: >
+      Probes http://localhost:PORT with 3s timeout, <=10 concurrent; classifies
+      ok (2xx) / slow (>300ms) / warn (3xx-4xx) / error (5xx) / timeout; sheet
+      shows dot, :port, name, pill tag, code, latency; Test All Now re-probes.
+    tasks:
+      - desc: "HealthChecker actor with URLSession + classification"
+        verify: "xcodebuild test -only-testing BigServerMonitorTests/HealthCheckerTests"
+      - desc: "HealthCheckSheet view"
+        verify: "xcodebuild build"
+  - id: e04s02
+    title: Activity log persistence
+    acceptance: >
+      started/stopped/crashed/unresponsive events persisted to activity.db
+      (GRDB) under Application Support; filters by port/type/range; 30-day
+      retention purge; Clear History; timeline sheet shows dot/title/body/time.
+    tasks:
+      - desc: "ActivityStore with GRDB schema + retention + filters"
+        verify: "xcodebuild test -only-testing BigServerMonitorTests/ActivityStoreTests"
+      - desc: "ActivityLogSheet view"
+        verify: "xcodebuild build"
+  - id: e04s03
+    title: Log capture + Copy for AI
+    acceptance: >
+      Ring buffer 500 lines/port; level classification (error/warn/info) via
+      regex; LogsSheet with All/Errors/Warnings filter counts, dark terminal
+      pane, Copy and Copy for AI agent (formatted context block matching the
+      Go GetLogsForAI format).
+    tasks:
+      - desc: "LogCapture actor: ring buffer + classification + AI export"
+        verify: "xcodebuild test -only-testing BigServerMonitorTests/LogCaptureTests"
+      - desc: "LogsSheet view with filter bar + pasteboard actions"
+        verify: "xcodebuild build"

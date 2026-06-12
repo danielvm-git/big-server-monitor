@@ -1,66 +1,69 @@
 session:
-  project: portkeeper
-  started: "2026-06-09"
+  project: bigservermonitor
+  started: "2026-06-11"
   status: building
 
 active:
-  epic: e01-portkeeper-v1
-  story: null
-  phase: BUILD
+  release: 2.0.0
+  flow: release
+  epic: all
+  phase: RELEASE
+  branch: feat/swift6-rewrite
 
-completed_workflows:
-  - name: portkeeper-bootstrap
-    status: COMPLETE
-    when: "2026-06-09T22:45:00Z"
-    output: |
-      ✓ Git repo initialized, feat/portkeeper-v1 branch created
-      ✓ Wails v2 installed (v2.12.0)
-      ✓ Wails project scaffolded (React 19 + Vite 8)
-      ✓ BigBase ECC kernel copied and tested (8 tests pass)
-      ✓ 6 component directories created
-      ✓ CLAUDE.md and CONVENTIONS.md written
-      ✓ go build ./kernel/... ✓ (gate passed)
+release:
+  pr: "https://github.com/danielvm-git/big-server-monitor/pull/1"
+  pr_opened: "2026-06-11"
+  pending: "merge PR, then tag v2.0.0 on main (release.last_tag)"
 
-in_progress_workflows:
-  - name: portkeeper-backend
-    status: RUNNING
-    started: "2026-06-09T22:52:00Z"
-    agents: 6
-    details: |
-      Parallel TDD implementation of 6 components:
-      - processmonitor (port enumeration, process detection)
-      - healthcheck (HTTP + protocol-aware DB probes)
-      - activitylog (SQLite timeline persistence)
-      - logcapture (ring buffer + "Copy for AI" export)
-      - notifications (macOS UserNotifications)
-      - settings (config persistence + launch-at-login)
+metrics:
+  story_start: "2026-06-11T00:00:00Z"
 
-      Expected completion: ~10-15 minutes
-      Next gate: go test ./components/... (all green)
-
-pending_workflows:
-  - name: portkeeper-integration
-    status: QUEUED
-    details: |
-      C1: Wire main.go + Wails bindings (1 agent, sequential)
-      C2: Frontend UI in parallel (3 agents) — popover, sheets, settings+theme
-      C3: Final audit + ship (1 agent, sequential)
+history:
+  - release: 1.0.0
+    note: >
+      PortKeeper v1 (Go ECC kernel + Wails v2 + React 19) completed 2026-06-09/10:
+      all 6 components, 150+ tests, Playwright e2e, structured slog logging.
+      Superseded by the 2.0.0 Swift 6 rewrite (see release-plan.yaml).
+  - release: 2.0.0
+    epic: e01-scaffold-and-brand
+    status: committed
+    commit: 2b53c9c
+  - release: 2.0.0
+    epic: e02-process-monitor-core
+    status: committed
+    commit: b03b71d
+  - release: 2.0.0
+    epic: e03-popover-ui
+    status: committed
+    commit: edfd789
+  - release: 2.0.0
+    epic: e04-health-activity-logs
+    status: committed
+    commit: f42179f
+  - release: 2.0.0
+    epic: e05-settings-notifications
+    status: committed
+    commit: multiple (SettingsStore, JSONLogger, Notifier, SettingsSheet, AppState wiring)
+  - release: 2.0.0
+    epic: e06-cutover
+    status: committed
+    commit: multiple (legacy removal, docs refresh)
 
 handoff: >
-  **PAUSE CHECKPOINT**
-
-  Workflow A (Bootstrap) completed successfully. All kernel infrastructure in place.
-  Workflow B (Backend Components) is currently running in background (6 parallel Haiku agents).
-
-  TO CONTINUE IN ANOTHER SESSION:
-  1. Wait for Workflow B to complete (monitor via `/workflows` command)
-  2. Verify gate: go test ./components/... (expect all green)
-  3. Launch Workflow C (portkeeper-integration) with the same Haiku model
-
-  WORKFLOW SCRIPTS SAVED AT:
-  - Bootstrap: /Users/danielvm/.claude/projects/.../workflows/scripts/portkeeper-bootstrap-wf_7762463d-c5b.js
-  - Backend: /Users/danielvm/.claude/projects/.../workflows/scripts/portkeeper-backend-wf_261f2c7b-185.js
-
-  EXECUTION PLAN: /Users/danielvm/.claude/plans/plan-how-to-execute-kind-metcalfe.md
-
-  All specs at: /Users/danielvm/Developer/big-server-monitor/specs/
+  VERIFY phase complete 2026-06-11. Tests 53/53, BUILD OK.
+  M1 (menubar icon + popover): PASSED.
+  M2 (server interaction): PASSED — two fixes during UAT:
+    (a) chevron expand + labeled buttons (4776913),
+    (b) server list collapsed to zero height: LazyVStack/flexible ScrollView
+        get zero proposed height in MenuBarExtra sizing pass; eager VStack +
+        explicit height from row count (a91bfc1).
+  M3 (health/activity/logs/settings): PASSED — two fixes during UAT (addfe0c):
+    (a) LogCapture had no feed; now pulls unified log (`log show`) per PID
+        on Logs open, per specs/005 v1 design.
+    (b) sheets attached to MenuBarExtra popover died on first click;
+        converted to standalone Window scenes + NSApp.activate (LSUIElement).
+  M4 (cutover): PASSED automated checks (no .go/.tsx, tests green).
+  Known limitation: notification permission fails on unsigned debug builds;
+  recheck crash alerts on signed Release build.
+  RELEASE: branch + main pushed to github.com/danielvm-git/big-server-monitor;
+  PR #1 open. After merge: tag v2.0.0, set release.last_tag, archive this flow.

@@ -1,0 +1,30 @@
+epic: e01
+name: scaffold-and-brand
+status: done
+goal: >
+  Buildable Swift 6 menubar app named BigServerMonitor with brand assets
+  from specs/design-handoff/ and a static popover skeleton.
+
+stories:
+  - id: e01s01
+    title: XcodeGen project scaffold
+    acceptance: >
+      Given the repo, when I run `xcodegen && xcodebuild -scheme BigServerMonitor build`,
+      then a BigServerMonitor.app bundle is produced with LSUIElement=true,
+      bundle id com.danielvm.bigservermonitor, Swift 6 language mode.
+    tasks:
+      - desc: "Write project.yml (app target, macOS 14+, SWIFT_VERSION 6, strict concurrency, sandbox off, Info.plist props)"
+        verify: "xcodegen --spec project.yml"
+      - desc: "BigServerMonitorApp.swift with MenuBarExtra(.window) + placeholder PopoverView"
+        verify: "xcodebuild -project BigServerMonitor.xcodeproj -scheme BigServerMonitor build"
+  - id: e01s02
+    title: Brand assets
+    acceptance: >
+      App icon rendered from specs/design-handoff/assets/bigservermonitor-logo.svg;
+      menubar shows a template pulse icon; popover header shows mark + wordmark
+      "BigServerMonitor" bold with tight tracking.
+    tasks:
+      - desc: "Render logo SVG to AppIcon.appiconset PNGs (16..1024)"
+        verify: "ls Sources/App/Resources/Assets.xcassets/AppIcon.appiconset/*.png | wc -l"
+      - desc: "Brand.swift: LogoMark SwiftUI shape (rounded square + pulse polyline + 3 bars) and wordmark style"
+        verify: "xcodebuild build"

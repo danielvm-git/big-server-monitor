@@ -1,0 +1,28 @@
+epic: e06
+name: cutover
+status: done
+goal: >
+  Remove the legacy Go/Wails/React implementation and make the Swift app the
+  sole product of the repo. Rewrite project docs for the Swift toolchain.
+
+stories:
+  - id: e06s01
+    title: Remove legacy stack
+    acceptance: >
+      No Go, Wails, or React sources remain; Swift build and tests still green.
+    tasks:
+      - desc: "Delete *.go, kernel/, components/, internal/, frontend/, wails.json, go.mod, go.sum, build/ (legacy)"
+        verify: "test -z \"$(find . -name '*.go' -not -path './.git/*')\" && xcodebuild build"
+  - id: e06s02
+    title: Docs + tooling refresh
+    acceptance: >
+      CLAUDE.md/CONVENTIONS.md/README describe the Swift app (commands,
+      observability paths, architecture); .gitignore covers DerivedData and
+      generated xcodeproj; scripts/setup.sh is idempotent (xcodegen + build).
+    tasks:
+      - desc: "Rewrite CLAUDE.md (commands table, observability log path, architecture, Never rules)"
+        verify: "grep -q xcodebuild CLAUDE.md && ! grep -qi wails CLAUDE.md"
+      - desc: "Rewrite CONVENTIONS.md for Swift (naming, tests, git rules unchanged)"
+        verify: "grep -qi swift CONVENTIONS.md"
+      - desc: "Update .gitignore + scripts/setup.sh"
+        verify: "bash scripts/setup.sh && bash scripts/setup.sh"
