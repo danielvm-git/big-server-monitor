@@ -5,22 +5,20 @@ session:
 
 active:
   release: 2.1.0
-  flow: build_epic
+  flow: none
   epic: e07
-  phase: REVIEW
-  branch: feat/e07-window-app
+  phase: RELEASED
+  branch: main
 
 release:
-  pr: "https://github.com/danielvm-git/big-server-monitor/pull/1"
-  pr_opened: "2026-06-11"
-  merged: "2026-06-11"
-  last_tag: v2.0.0
+  pr: "https://github.com/danielvm-git/big-server-monitor/pull/4"
+  pr_opened: "2026-06-12"
+  merged: "2026-06-12"
+  last_tag: v2.1.0
 
 epic_cycle:
   epic: e07
-  step: 1
-  story: e07s01
-  story_bcps: 7
+  status: done
 
 metrics:
   story_start: "2026-06-12T00:00:00Z"
@@ -55,12 +53,14 @@ history:
     epic: e06-cutover
     status: committed
     commit: multiple (legacy removal, docs refresh)
+  - release: 2.1.0
+    epic: e07-window-app
+    status: done
+    pr: "https://github.com/danielvm-git/big-server-monitor/pull/4"
 
 handoff:
   next_skill: none
   context: >
-    e07-window-app complete. PR #3 open at
-    https://github.com/danielvm-git/big-server-monitor/pull/3.
-    61/61 tests passing. Audit passed. PR checklist in PR body.
-    After merge: tag v2.1.0, update release.last_tag, update e07 status to done
-    in specs/epics/e07-window-app.yaml and release-plan.yaml.
+    Release 2.1.0 shipped. e07-window-app merged to main via PR #4.
+    61/61 tests passing. Release tagged v2.1.0.
+    All state files reconciled. Ready for next epic.
