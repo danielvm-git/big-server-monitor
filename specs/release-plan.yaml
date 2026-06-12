@@ -41,6 +41,11 @@ epics:
     name: cutover
     description: "Delete Go/React/Wails, rewrite CLAUDE.md/CONVENTIONS/README, .gitignore, setup.sh"
     status: done
+  - id: e07
+    name: window-app
+    description: "Convert to dock app: WindowGroup main window, two-pane sidebar+overview UI, keep menubar as secondary"
+    status: todo
+    wsjf: 1.75
 
 milestones:
   - name: "M1: It lives in the menubar"
