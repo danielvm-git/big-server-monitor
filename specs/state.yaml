@@ -1,19 +1,20 @@
 session:
   project: bigservermonitor
   started: "2026-06-11"
-  status: building
+  status: released
 
 active:
   release: 2.0.0
-  flow: release
+  flow: none
   epic: all
-  phase: RELEASE
-  branch: feat/swift6-rewrite
+  phase: RELEASED
+  branch: main
 
 release:
   pr: "https://github.com/danielvm-git/big-server-monitor/pull/1"
   pr_opened: "2026-06-11"
-  pending: "merge PR, then tag v2.0.0 on main (release.last_tag)"
+  merged: "2026-06-11"
+  last_tag: v2.0.0
 
 metrics:
   story_start: "2026-06-11T00:00:00Z"
