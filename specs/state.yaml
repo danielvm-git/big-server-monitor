@@ -1,23 +1,26 @@
 session:
   project: bigservermonitor
   started: "2026-06-11"
-  status: released
+  status: active
 
 active:
-  release: 2.0.0
-  flow: none
-  epic: all
-  phase: RELEASED
-  branch: main
+  release: 2.1.0
+  flow: release
+  epic: e07
+  phase: RELEASE
+  branch: feat/swift6-rewrite
 
 release:
-  pr: "https://github.com/danielvm-git/big-server-monitor/pull/1"
-  pr_opened: "2026-06-11"
-  merged: "2026-06-11"
+  pr: "https://github.com/danielvm-git/big-server-monitor/pull/4"
+  pr_opened: "2026-06-12"
   last_tag: v2.0.0
 
+epic_cycle:
+  epic: e07
+  status: merging
+
 metrics:
-  story_start: "2026-06-11T00:00:00Z"
+  story_start: "2026-06-12T00:00:00Z"
 
 history:
   - release: 1.0.0
@@ -49,22 +52,14 @@ history:
     epic: e06-cutover
     status: committed
     commit: multiple (legacy removal, docs refresh)
+  - release: 2.1.0
+    epic: e07-window-app
+    status: merged
+    pr: "https://github.com/danielvm-git/big-server-monitor/pull/4"
 
-handoff: >
-  VERIFY phase complete 2026-06-11. Tests 53/53, BUILD OK.
-  M1 (menubar icon + popover): PASSED.
-  M2 (server interaction): PASSED — two fixes during UAT:
-    (a) chevron expand + labeled buttons (4776913),
-    (b) server list collapsed to zero height: LazyVStack/flexible ScrollView
-        get zero proposed height in MenuBarExtra sizing pass; eager VStack +
-        explicit height from row count (a91bfc1).
-  M3 (health/activity/logs/settings): PASSED — two fixes during UAT (addfe0c):
-    (a) LogCapture had no feed; now pulls unified log (`log show`) per PID
-        on Logs open, per specs/005 v1 design.
-    (b) sheets attached to MenuBarExtra popover died on first click;
-        converted to standalone Window scenes + NSApp.activate (LSUIElement).
-  M4 (cutover): PASSED automated checks (no .go/.tsx, tests green).
-  Known limitation: notification permission fails on unsigned debug builds;
-  recheck crash alerts on signed Release build.
-  RELEASE: branch + main pushed to github.com/danielvm-git/big-server-monitor;
-  PR #1 open. After merge: tag v2.0.0, set release.last_tag, archive this flow.
+handoff:
+  next_skill: none
+  context: >
+    e07-window-app merged to main via PR #4. 61/61 tests passing.
+    Next: tag v2.1.0, update release-plan.yaml e07 status to done,
+    update e07-window-app.yaml status to done.

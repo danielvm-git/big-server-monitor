@@ -13,6 +13,11 @@ struct AppConfig: Codable, Sendable, Equatable {
     var ignoredPorts: [Int] = []
     var notifications: NotificationConfig = NotificationConfig()
     var launchAtLogin: Bool = false
+    var appearanceMode: AppearanceMode = .system
+}
+
+enum AppearanceMode: String, Codable, Sendable, CaseIterable {
+    case system, light, dark
 }
 
 /// Loads, saves, and resets application settings from a JSON file.
