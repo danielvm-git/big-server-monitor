@@ -64,6 +64,40 @@ actor LogCapture {
         buffers[port] = nil
     }
 
+    /// v1 capture path (specs/005): processes discovered via lsof were not
+    /// spawned by us, so stdio cannot be piped. Pull the PID's recent entries
+    /// from the macOS unified log instead. Replaces the port's buffer.
+    func captureSystemLogs(pid: Int, port: Int, window: String = "5m") {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/log")
+        process.arguments = [
+            "show", "--predicate", "processID == \(pid)",
+            "--last", window, "--info", "--style", "compact",
+        ]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = Pipe()
+
+        guard (try? process.run()) != nil else { return }
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+
+        guard let output = String(data: data, encoding: .utf8) else { return }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
+
+        buffers[port] = []
+        for raw in output.split(separator: "\n").suffix(Self.maxLines) {
+            let line = String(raw)
+            // Compact style: "2026-06-12 00:42:05.281 Df name[pid:tid] ..."
+            guard line.count > 23, line.first?.isNumber == true else { continue }
+            let stampText = String(line.prefix(23))
+            let timestamp = formatter.date(from: stampText) ?? Date()
+            let text = String(line.dropFirst(23)).trimmingCharacters(in: .whitespaces)
+            ingest(port: port, text: text, stream: "system", timestamp: timestamp)
+        }
+    }
+
     func lines(port: Int, level: LogLevel? = nil) -> [LogLine] {
         let all = buffers[port] ?? []
         guard let level else { return all }

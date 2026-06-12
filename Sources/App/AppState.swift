@@ -4,21 +4,12 @@ import ServiceManagement
 import SwiftUI
 import UserNotifications
 
-enum ActiveSheet: String, Identifiable {
-    case health
-    case activity
-    case settings
-
-    var id: String { rawValue }
-}
-
 /// Root observable model. Bridges the core actors to the UI.
 @Observable
 @MainActor
 final class AppState {
     var servers: [Server] = []
     var killTarget: Server?
-    var activeSheet: ActiveSheet?
     var logsServer: Server?
 
     var healthResults: [HealthResult] = []
@@ -147,7 +138,11 @@ final class AppState {
 
     func openLogs(for server: Server) {
         logsServer = server
+        logLines = []
         Task {
+            if let pid = server.pid {
+                await logs.captureSystemLogs(pid: Int(pid), port: server.port)
+            }
             logLines = await logs.lines(port: server.port)
         }
     }

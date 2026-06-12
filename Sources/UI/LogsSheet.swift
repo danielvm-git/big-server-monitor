@@ -77,7 +77,9 @@ struct LogsSheet: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 if filtered.isEmpty {
-                    Text("No \(filter.rawValue.lowercased()) entries in log.")
+                    Text(filter == .all
+                        ? "No system-log entries for this process in the last 5 minutes.\nProcesses writing only to their own stdout/stderr won't appear here."
+                        : "No \(filter.rawValue.lowercased()) entries in log.")
                         .foregroundStyle(Color(red: 0.52, green: 0.52, blue: 0.52))
                 } else {
                     ForEach(filtered) { line in

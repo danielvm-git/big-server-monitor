@@ -4,6 +4,7 @@ import SwiftUI
 /// uptime; expands to PID/Memory/Binary; trailing logs + kill buttons.
 struct ServerRowView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.openWindow) private var openWindow
     let server: Server
     @Binding var expandedPort: Int?
 
@@ -92,6 +93,7 @@ struct ServerRowView: View {
             HStack(spacing: 6) {
                 Button {
                     appState.openLogs(for: server)
+                    openWindow(id: "logs")
                 } label: {
                     Label("Logs", systemImage: "terminal")
                         .font(.system(size: 11))

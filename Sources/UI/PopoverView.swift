@@ -3,6 +3,7 @@ import SwiftUI
 /// 360pt popover per specs/design-handoff/PortKeeper.html.
 struct PopoverView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.openWindow) private var openWindow
     @State private var expandedPort: Int?
 
     var body: some View {
@@ -50,30 +51,6 @@ struct PopoverView: View {
         } message: {
             Text("\(appState.killTarget?.projectName ?? "Process") (PID \(appState.killTarget?.pid.map(String.init) ?? "—")) will be killed and removed from the list.")
         }
-        .sheet(item: sheetBinding) { sheet in
-            switch sheet {
-            case .health: HealthCheckSheet()
-            case .activity: ActivityLogSheet()
-            case .settings: SettingsSheet()
-            }
-        }
-        .sheet(item: logsServerBinding) { server in
-            LogsSheet(server: server)
-        }
-    }
-
-    private var sheetBinding: Binding<ActiveSheet?> {
-        Binding(
-            get: { appState.activeSheet },
-            set: { appState.activeSheet = $0 }
-        )
-    }
-
-    private var logsServerBinding: Binding<Server?> {
-        Binding(
-            get: { appState.logsServer },
-            set: { appState.logsServer = $0 }
-        )
     }
 
     private var killAlertBinding: Binding<Bool> {
@@ -136,13 +113,13 @@ struct PopoverView: View {
     private var footer: some View {
         VStack(spacing: 2) {
             FooterButton(icon: "waveform.path.ecg", title: "Health Check") {
-                appState.activeSheet = .health
+                openWindow(id: "health")
             }
             FooterButton(icon: "clock.arrow.circlepath", title: "Activity Log") {
-                appState.activeSheet = .activity
+                openWindow(id: "activity")
             }
             FooterButton(icon: "gearshape", title: "Settings") {
-                appState.activeSheet = .settings
+                openWindow(id: "settings")
             }
         }
         .padding(8)

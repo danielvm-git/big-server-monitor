@@ -12,6 +12,41 @@ struct BigServerMonitorApp: App {
             MenuBarLabel(activeCount: appState.activeCount)
         }
         .menuBarExtraStyle(.window)
+
+        // Standalone windows, not .sheet: sheets attached to the MenuBarExtra
+        // popover die when the popover auto-dismisses on first click.
+        Window("Health Check", id: "health") {
+            HealthCheckSheet().environment(appState).activateOnAppear()
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+
+        Window("Activity Log", id: "activity") {
+            ActivityLogSheet().environment(appState).activateOnAppear()
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+
+        Window("Settings", id: "settings") {
+            SettingsSheet().environment(appState).activateOnAppear()
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+
+        Window("Logs", id: "logs") {
+            if let server = appState.logsServer {
+                LogsSheet(server: server).environment(appState).activateOnAppear()
+            }
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+    }
+}
+
+extension View {
+    /// LSUIElement apps don't activate on openWindow; force focus.
+    func activateOnAppear() -> some View {
+        onAppear { NSApp.activate(ignoringOtherApps: true) }
     }
 }
 
