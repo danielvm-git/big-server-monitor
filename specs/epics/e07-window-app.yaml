@@ -1,0 +1,108 @@
+epic: e07
+name: window-app
+status: todo
+wsjf: 1.75
+wsjf_rationale: >
+  BV=8 (paradigm shift from menubar-only to standard macOS app), TC=3, RR=2,
+  JobSize=7 (plist + app entry refactor + new two-pane window UI + sidebar nav).
+  WSJF = (8+3+2)/7 = 1.86. Rounded to 1.75 conservatively.
+
+goal: >
+  Convert BigServerMonitor from a LSUIElement menubar-only app to a standard
+  macOS dock app with a primary main window. Keep the menubar icon as a secondary
+  status indicator that opens/focuses the main window. Main window follows the
+  two-pane layout from the design screenshot: left sidebar (server nav) + right
+  overview panel (stat cards + server table).
+
+design_reference: >
+  Screenshot at ~/Desktop/Screenshot\ 2026-06-11\ at\ 22.27.13.png.
+  Left sidebar: "MONITORS › Overview", "SERVERS" list (dot-colored per status),
+  "TOOLS" (Health Check, Activity Log, Settings).
+  Main panel: "Overview" heading, "Monitoring N development servers" subtitle,
+  four stat cards (Active, Crashed, Unresponsive, Memory), servers table with
+  columns Name | Port | Status | Memory | Uptime.
+  Title bar: search field, dark-mode toggle, refresh button.
+
+stories:
+  - id: e07s01
+    title: Remove LSUIElement, add dock icon, keep menubar as secondary
+    acceptance: >
+      App appears in the dock and Launchpad; menubar icon remains and clicking it
+      opens/focuses the main window; LSUIElement key is absent from Info.plist.
+    tasks:
+      - desc: "Remove LSUIElement from project.yml Info.plist section; regen xcodeproj"
+        verify: "! grep -q LSUIElement BigServerMonitor/Info.plist && xcodebuild build"
+      - desc: "Change BigServerMonitorApp.body: add WindowGroup as primary scene; demote MenuBarExtra to secondary (clicking menubar icon calls openWindow(id: 'main'))"
+        verify: "grep -q 'WindowGroup' Sources/App/BigServerMonitorApp.swift"
+
+  - id: e07s02
+    title: Main window shell — two-pane NavigationSplitView
+    acceptance: >
+      Main window opens at ~900×600pt resizable; left sidebar and right detail
+      pane render without crashes; window title bar shows app name.
+    tasks:
+      - desc: "Create Sources/UI/MainAppView.swift with NavigationSplitView: sidebar (SidebarView) + detail (placeholder Text)"
+        verify: "xcodebuild build"
+      - desc: "Add Window('BigServerMonitor', id: 'main') scene in App.swift pointing to MainAppView; set default size 900×600"
+        verify: "open build/Debug/BigServerMonitor.app && sleep 2 # window appears"
+
+  - id: e07s03
+    title: Sidebar — server nav list
+    acceptance: >
+      Sidebar shows Overview row, then per-server rows with colored status dot
+      and server name; selecting a row updates the detail pane selection;
+      Tools section (Health Check, Activity Log, Settings) at bottom.
+    tasks:
+      - desc: "Create Sources/UI/SidebarView.swift: List with Overview item, ForEach over appState.servers, Tools section"
+        verify: "xcodebuild build"
+      - desc: "Status dot color matches server state: green=running, red=crashed, orange=unresponsive, gray=unknown"
+        verify: "xcodebuild test -only-testing BigServerMonitorTests/SidebarColorTests"
+
+  - id: e07s04
+    title: Overview panel — stat cards + server table
+    acceptance: >
+      Overview detail shows four stat cards (active count, crashed count,
+      unresponsive count, total memory MB); below is a table of all servers
+      with Name, Port, Status badge, Memory, Uptime columns; selecting a server
+      row in the table also selects it in the sidebar.
+    tasks:
+      - desc: "Create Sources/UI/OverviewPanel.swift: HStack of StatCard views + List/Table of servers"
+        verify: "xcodebuild build"
+      - desc: "StatCard: title label + large number + subtitle (e.g. 'of N servers', 'needs attention')"
+        verify: "xcodebuild build"
+      - desc: "Server table columns: Name (with colored dot), Port, Status badge (pill), Memory (MB), Uptime (relative string)"
+        verify: "xcodebuild build"
+
+  - id: e07s05
+    title: Title bar search + dark mode toggle
+    acceptance: >
+      Search field in toolbar filters the sidebar server list and table in real
+      time; dark-mode toggle button switches between system/light/dark appearance.
+    tasks:
+      - desc: "Add .searchable modifier on NavigationSplitView bound to a @State searchText; filter appState.servers"
+        verify: "xcodebuild build"
+      - desc: "Add toolbar button cycling NSAppearance: system → light → dark → system; persist to SettingsStore"
+        verify: "xcodebuild build"
+
+  - id: e07s06
+    title: Wire Tools sidebar items to existing sheets
+    acceptance: >
+      Clicking Health Check / Activity Log / Settings in the sidebar opens the
+      existing sheet windows (health, activity, settings window IDs); no duplicate
+      sheet logic introduced.
+    tasks:
+      - desc: "Sidebar Tools items call openWindow(id:) for existing 'health', 'activity', 'settings' Window scenes"
+        verify: "xcodebuild build"
+      - desc: "Remove PopoverView from MenuBarExtra body (menubar click now just focuses main window)"
+        verify: "! grep -q 'PopoverView' Sources/App/BigServerMonitorApp.swift"
+
+  - id: e07s07
+    title: Tests + cleanup
+    acceptance: >
+      Swift Testing suite green; PopoverView kept but unused (or removed if no
+      references remain); CLAUDE.md updated to note dock-app entry.
+    tasks:
+      - desc: "Write SidebarColorTests: verify status→color mapping for each ServerStatus case"
+        verify: "xcodebuild test -only-testing BigServerMonitorTests/SidebarColorTests"
+      - desc: "Update CLAUDE.md Architecture section: replace 'MenuBarExtra' with 'WindowGroup (dock app) + MenuBarExtra (secondary)'"
+        verify: "grep -q 'dock app' CLAUDE.md"

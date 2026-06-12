@@ -3,8 +3,10 @@
 Read CONVENTIONS.md before any git operation.
 
 ## Project
-macOS menubar app for monitoring local development servers.
-Native Swift 6 / SwiftUI, MenuBarExtra with LSUIElement (no dock icon).
+macOS dock app (+ secondary menubar status icon) for monitoring local development servers.
+Native Swift 6 / SwiftUI. Primary entry: WindowGroup dock app with two-pane
+NavigationSplitView (sidebar + overview panel). MenuBarExtra is a secondary status
+icon that opens/focuses the main window.
 
 ## Commands
 | Action | Command |
@@ -19,11 +21,12 @@ Native Swift 6 / SwiftUI, MenuBarExtra with LSUIElement (no dock icon).
 Swift 6 with actors, AsyncStream, @Observable, SwiftUI, GRDB (SQLite).
 ```
 Sources/
-  App/    AppState (@Observable @MainActor), BigServerMonitorApp (MenuBarExtra)
+  App/    AppState (@Observable @MainActor), BigServerMonitorApp (WindowGroup dock app + MenuBarExtra secondary)
   Core/   ProcessMonitor, HealthChecker, ActivityStore, LogCapture, Notifier,
           SettingsStore, JSONLogger, Models, PortDiscovery, ProjectDetection
-  UI/     PopoverView, ServerRowView, HealthCheckSheet, ActivityLogSheet,
-          LogsSheet, SettingsSheet, Brand
+  UI/     MainAppView (NavigationSplitView), SidebarView, OverviewPanel, ServerDetailView,
+          AppearanceToggleButton, PopoverView (retained, unused), ServerRowView,
+          HealthCheckSheet, ActivityLogSheet, LogsSheet, SettingsSheet, Brand
 ```
 Components communicate via AppState bridging — actors publish to @Observable,
 UI reads @Observable. No direct imports between core components.

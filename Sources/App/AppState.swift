@@ -24,6 +24,7 @@ final class AppState {
     var configCrashAlerts: Bool = true
     var configShowBadge: Bool = true
     var configLaunchAtLogin: Bool = false
+    var configAppearanceMode: AppearanceMode = .system
 
     @ObservationIgnored let monitor: ProcessMonitor
     @ObservationIgnored let health: HealthChecker
@@ -179,6 +180,7 @@ final class AppState {
         configCrashAlerts = config.notifications.crashAlerts
         configShowBadge = config.notifications.showBadge
         configLaunchAtLogin = config.launchAtLogin
+        configAppearanceMode = config.appearanceMode
     }
 
     func saveSettings() async {
@@ -188,7 +190,8 @@ final class AppState {
             healthInterval: configHealthInterval,
             ignoredPorts: configIgnoredPorts,
             notifications: NotificationConfig(crashAlerts: configCrashAlerts, showBadge: configShowBadge),
-            launchAtLogin: configLaunchAtLogin
+            launchAtLogin: configLaunchAtLogin,
+            appearanceMode: configAppearanceMode
         )
         try? await settings.save(config)
     }
